@@ -1,18 +1,18 @@
 {
-  "id": "dev.replugged.PluginTemplate",
-  "name": "Plugin Template",
-  "description": "A plugin template",
+  "id": "me.puyodead1.PlatformIndicators",
+  "name": "Platform Indicators",
+  "description": "Adds platform indicators to users",
   "author": {
-    "name": "replugged",
+    "name": "Puyodead1",
     "discordID": "1000992611840049192",
-    "github": "replugged-org"
+    "github": "Puyodead1"
   },
-  "version": "1.0.3",
+  "version": "1.0.0-beta1",
   "updater": {
     "type": "github",
-    "id": "replugged-org/plugin-template"
+    "id": "Puyodead1/replugged-platformindicators"
   },
   "license": "MIT",
   "type": "replugged-plugin",
-  "renderer": "src/index.ts"
+  "renderer": "src/index.tsx"
 }

@@ -1,7 +1,7 @@
 {
-  "name": "plugin-template",
-  "version": "1.0.0",
-  "description": "A plugin template",
+  "name": "replugged-platformindicators",
+  "version": "1.0.0-beta1",
+  "description": "Adds platform indicators to users",
   "engines": {
     "node": ">=14.0.0"
   },
@@ -25,6 +25,7 @@
     "@electron/asar": "^3.2.1",
     "@fal-works/esbuild-plugin-global-externals": "^2.1.2",
     "@types/node": "^18.11.2",
+    "@types/react": "^18.0.26",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.1",
     "esbuild": "^0.15.11",
@@ -36,5 +37,8 @@
     "replugged": "4.0.0-beta0.18",
     "tsx": "^3.10.3",
     "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "discord-types": "^1.3.26"
   }
 }
