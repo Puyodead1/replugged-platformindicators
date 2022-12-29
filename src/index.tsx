@@ -166,7 +166,6 @@ export async function start(): Promise<void> {
         user: args.message.author,
         inline: true,
       });
-      console.log(indicator);
       args.decorations["1"].push(indicator);
     }
     return res;

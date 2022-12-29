@@ -1,6 +1,6 @@
 {
   "name": "replugged-platformindicators",
-  "version": "1.0.0-beta2",
+  "version": "1.0.0-beta",
   "description": "Adds platform indicators to users",
   "engines": {
     "node": ">=14.0.0"
