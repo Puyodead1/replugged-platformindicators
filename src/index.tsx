@@ -92,15 +92,7 @@ export async function start(): Promise<void> {
   const getStatus = (id: string): Record<Platform, string> =>
     PresenceStore.getState()?.clientStatuses?.[id];
 
-  const PlatformIndicator = ({
-    user,
-    inline = false,
-    marginLeft = "4px",
-  }: {
-    user: User;
-    inline?: boolean;
-    marginLeft?: string;
-  }) => {
+  const PlatformIndicator = ({ user, inline = false }: { user: User; inline?: boolean }) => {
     if (!user || user.bot) return;
 
     if (user.id === UserStore.getCurrentUser().id) {
@@ -140,12 +132,12 @@ export async function start(): Promise<void> {
 
     return (
       <div
-        className="platform-indicator"
+        className="platform-indicators"
         style={{
-          marginLeft,
           display: inline ? "inline-flex" : "flex",
           alignItems: "center",
-          // transform: inline ? "translateY(4px)" : undefined,
+          verticalAlign: "top",
+          position: "relative",
         }}>
         {icons}
       </div>
