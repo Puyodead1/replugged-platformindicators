@@ -2,13 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 /* eslint-disable new-cap */
-import { Components, Stores } from "discord-types";
+import { Stores } from "discord-types";
 import { User } from "discord-types/general";
 import { Injector, webpack } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
-import Icon from "./Components/Icon";
+import icon from "./Components/Icon";
 
 const inject = new Injector();
+const TOOLTIP_REGEX = /shouldShowTooltip:!1/;
 
 const moduleFindFailed = (name: string): void => console.error(`Module ${name} not found!`);
 
@@ -49,10 +50,14 @@ export async function start(): Promise<void> {
   )) as Stores.UserStore | null;
   if (!UserStore) return moduleFindFailed("UserStore");
 
-  const Tooltip = await webpack.waitForModule<Components.Tooltip>(
-    webpack.filters.byProps("Positions", "Colors"),
+  const tooltipMod = await webpack.waitForModule<Record<string, React.FC>>(
+    webpack.filters.bySource(TOOLTIP_REGEX),
   );
-  if (!Tooltip) return moduleFindFailed("Tooltip");
+  const Tooltip = tooltipMod && webpack.getFunctionBySource<React.FC>(TOOLTIP_REGEX, tooltipMod);
+  if (!Tooltip) {
+    console.error("Failed to find Tooltip component");
+    return;
+  }
 
   const getStatusColorMod = await webpack.waitForModule<{
     [key: string]: string;
@@ -63,6 +68,8 @@ export async function start(): Promise<void> {
     getStatusColorMod,
   );
   if (!getStatusColor) return moduleFindFailed("getStatusColor");
+
+  const Icon = icon(Tooltip);
 
   const Icons = {
     desktop: Icon(
@@ -159,6 +166,7 @@ export async function start(): Promise<void> {
         user: args.message.author,
         inline: true,
       });
+      console.log(indicator);
       args.decorations["1"].push(indicator);
     }
     return res;
