@@ -2,17 +2,19 @@
 import { Stores } from "discord-types";
 import { UserStore } from "discord-types/stores";
 import EventEmitter from "events";
-import { Injector, webpack } from "replugged";
+import { common, Injector, Logger, webpack } from "replugged";
 import { AnyFunction, RawModule } from "replugged/dist/types";
 import platformIndicator from "./Components/PlatformIndicator";
 import { ClientStatus, PresenceStore, SessionStore } from "./interfaces";
 import "./style.css";
 
 const inject = new Injector();
+const { fluxDispatcher } = common;
 const TOOLTIP_REGEX = /shouldShowTooltip:!1/;
 const EVENT_NAME = "PRESENCE_UPDATES";
+const logger = Logger.plugin("PlatformIndicators");
 
-const moduleFindFailed = (name: string): void => console.error(`Module ${name} not found!`);
+const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {
   type: typeof EVENT_NAME;
   updates: {
@@ -22,19 +24,10 @@ let presenceUpdate: (e: {
     user: { id: string };
   }[];
 }) => void;
-let FluxDispatcher: {
-  subscribe: (event: string, callback: (event: any) => void) => void;
-  unsubscribe: (event: string, callback: (event: any) => void) => void;
-};
 
 const eventEmitter = new EventEmitter();
 
 export async function start(): Promise<void> {
-  FluxDispatcher = await webpack.waitForModule<{
-    subscribe: (event: string, callback: (event: any) => void) => void;
-    unsubscribe: (event: string, callback: (event: any) => void) => void;
-  }>(webpack.filters.byProps("subscribe", "isDispatching"));
-
   const SessionStore = await webpack.waitForModule<SessionStore>(
     webpack.filters.byProps("getActiveSession"),
   );
@@ -54,10 +47,7 @@ export async function start(): Promise<void> {
     webpack.filters.bySource(TOOLTIP_REGEX),
   );
   const Tooltip = tooltipMod && webpack.getFunctionBySource<React.FC>(TOOLTIP_REGEX, tooltipMod);
-  if (!Tooltip) {
-    console.error("Failed to find Tooltip component");
-    return;
-  }
+  if (!Tooltip) return moduleFindFailed("Tooltip");
 
   const getStatusColorMod = await webpack.waitForModule<{
     [key: string]: string;
@@ -73,7 +63,6 @@ export async function start(): Promise<void> {
     SessionStore,
     PresenceStore,
     UserStore,
-    Tooltip,
     getStatusColor,
   );
 
@@ -85,7 +74,7 @@ export async function start(): Promise<void> {
   const fnName = Object.entries(injectionModule).find(([_, v]) =>
     v.toString()?.match(/.withMentionPrefix/),
   )?.[0];
-  if (!fnName) return console.error("failed to get function name");
+  if (!fnName) return logger.error("Failed to get function name");
 
   presenceUpdate = ({ updates }) => {
     for (const u of updates) {
@@ -93,8 +82,8 @@ export async function start(): Promise<void> {
     }
   };
 
-  FluxDispatcher.subscribe(EVENT_NAME, presenceUpdate);
-  console.log("subscribed to presence updates");
+  fluxDispatcher.subscribe(EVENT_NAME, presenceUpdate as any);
+  logger.log("Subscribed to Presence updates");
 
   inject.after(injectionModule, fnName, ([args], res, fn) => {
     if (args.decorations && args.decorations["1"] && args.message && args.message.author) {
@@ -107,6 +96,6 @@ export async function start(): Promise<void> {
 
 export function stop(): void {
   inject.uninjectAll();
-  FluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate);
-  console.log("unsubscribed from presence updates");
+  fluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate as any);
+  logger.log("Unsubscribed from Presence updates");
 }

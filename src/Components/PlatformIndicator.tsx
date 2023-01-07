@@ -4,17 +4,15 @@ import { UserStore } from "discord-types/stores";
 import EventEmitter from "events";
 import { common } from "replugged";
 import { Platforms, PresenceStore, SessionStore } from "../interfaces";
-import icon from "./Icon";
+import Icon from "./Icon";
 const { React } = common;
 
 function PlatformIndicator(
   SessionStore: SessionStore,
   PresenceStore: PresenceStore,
   UserStore: UserStore,
-  Tooltip: React.FC,
   getStatusColor: (status: string) => string,
 ) {
-  const Icon = icon(Tooltip);
   const Icons = {
     desktop: Icon(
       "M4 2.5c-1.103 0-2 .897-2 2v11c0 1.104.897 2 2 2h7v2H7v2h10v-2h-4v-2h7c1.103 0 2-.896 2-2v-11c0-1.103-.897-2-2-2H4Zm16 2v9H4v-9h16Z",
