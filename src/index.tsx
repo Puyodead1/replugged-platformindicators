@@ -2,17 +2,17 @@
 import { Stores } from "discord-types";
 import { UserStore } from "discord-types/stores";
 import EventEmitter from "events";
-import { common, Injector, Logger, webpack } from "replugged";
+import { common, Injector, webpack } from "replugged";
 import { AnyFunction, RawModule } from "replugged/dist/types";
 import platformIndicator from "./Components/PlatformIndicator";
 import { ClientStatus, PresenceStore, SessionStore } from "./interfaces";
 import "./style.css";
+import { logger } from "./utils";
 
 const inject = new Injector();
 const { fluxDispatcher } = common;
 const TOOLTIP_REGEX = /shouldShowTooltip:!1/;
 const EVENT_NAME = "PRESENCE_UPDATES";
-const logger = Logger.plugin("PlatformIndicators");
 
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {

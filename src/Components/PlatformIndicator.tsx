@@ -4,6 +4,7 @@ import { UserStore } from "discord-types/stores";
 import EventEmitter from "events";
 import { common } from "replugged";
 import { Platforms, PresenceStore, SessionStore } from "../interfaces";
+import { logger } from "../utils";
 import Icon from "./Icon";
 const { React } = common;
 
@@ -31,6 +32,10 @@ function PlatformIndicator(
   const currentUser = UserStore.getCurrentUser();
   return ({ emitter, user }: { emitter: EventEmitter; user: User }) => {
     if (!user || user.bot) return null;
+    if (!currentUser) {
+      logger.warn("Failed to get current user!");
+      return null;
+    }
 
     if (user.id === currentUser.id) {
       const sessions = SessionStore.getSessions();
