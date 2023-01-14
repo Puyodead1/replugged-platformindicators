@@ -1,17 +1,15 @@
 /* eslint-disable */
 import { User } from "discord-types/general";
-import { UserStore } from "discord-types/stores";
 import EventEmitter from "events";
 import { common } from "replugged";
 import { Platforms, PresenceStore, SessionStore } from "../interfaces";
 import { logger } from "../utils";
 import Icon from "./Icon";
-const { React } = common;
+const { React, users } = common;
 
 function PlatformIndicator(
   SessionStore: SessionStore,
   PresenceStore: PresenceStore,
-  UserStore: UserStore,
   getStatusColor: (status: string) => string,
 ) {
   const Icons = {
@@ -29,7 +27,7 @@ function PlatformIndicator(
       "0 0 50 50",
     ),
   };
-  const currentUser = UserStore.getCurrentUser();
+  const currentUser = users.getCurrentUser();
   return ({ emitter, user }: { emitter: EventEmitter; user: User }) => {
     if (!user || user.bot) return null;
     if (!currentUser) {

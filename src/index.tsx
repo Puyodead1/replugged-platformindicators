@@ -1,17 +1,14 @@
 /* eslint-disable */
-import { Stores } from "discord-types";
-import { UserStore } from "discord-types/stores";
 import EventEmitter from "events";
 import { common, Injector, webpack } from "replugged";
-import { AnyFunction, RawModule } from "replugged/dist/types";
+import { AnyFunction } from "replugged/dist/types";
 import platformIndicator from "./Components/PlatformIndicator";
 import { ClientStatus, PresenceStore, SessionStore } from "./interfaces";
 import "./style.css";
 import { logger } from "./utils";
 
 const inject = new Injector();
-const { fluxDispatcher } = common;
-const TOOLTIP_REGEX = /shouldShowTooltip:!1/;
+const { fluxDispatcher, users } = common;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
@@ -38,17 +35,6 @@ export async function start(): Promise<void> {
   );
   if (!PresenceStore) return moduleFindFailed("PresenceStore");
 
-  const UserStore = (await webpack.waitForModule<UserStore & RawModule>(
-    webpack.filters.byProps("getCurrentUser", "initialize"),
-  )) as Stores.UserStore | null;
-  if (!UserStore) return moduleFindFailed("UserStore");
-
-  const tooltipMod = await webpack.waitForModule<Record<string, React.FC>>(
-    webpack.filters.bySource(TOOLTIP_REGEX),
-  );
-  const Tooltip = tooltipMod && webpack.getFunctionBySource<React.FC>(TOOLTIP_REGEX, tooltipMod);
-  if (!Tooltip) return moduleFindFailed("Tooltip");
-
   const getStatusColorMod = await webpack.waitForModule<{
     [key: string]: string;
   }>(webpack.filters.bySource(/\w+.STATUS_GREEN_600;case/));
@@ -59,12 +45,7 @@ export async function start(): Promise<void> {
   );
   if (!getStatusColor) return moduleFindFailed("getStatusColor");
 
-  const PlatformIndicator = platformIndicator(
-    SessionStore,
-    PresenceStore,
-    UserStore,
-    getStatusColor,
-  );
+  const PlatformIndicator = platformIndicator(SessionStore, PresenceStore, getStatusColor);
 
   const injectionModule = await webpack.waitForModule<{
     [key: string]: AnyFunction;
