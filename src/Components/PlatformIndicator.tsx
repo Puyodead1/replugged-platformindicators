@@ -11,6 +11,7 @@ function PlatformIndicator(
   SessionStore: SessionStore,
   PresenceStore: PresenceStore,
   getStatusColor: (status: string) => string,
+  profileBadge24: string,
 ) {
   const Icons = {
     desktop: Icon(
@@ -79,7 +80,7 @@ function PlatformIndicator(
         }`;
         const color = getStatusColor(status);
         const Icon = Icons[platform as Platforms] ?? Icons.desktop;
-        return <Icon color={`var(--${color}`} tooltip={tooltip} />;
+        return <Icon color={`var(--${color}`} tooltip={tooltip} className={profileBadge24} />;
       });
       setIcons(icons);
     }, [status]);

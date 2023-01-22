@@ -67,11 +67,12 @@ export async function start(): Promise<void> {
   if (!PresenceStore) return moduleFindFailed("PresenceStore");
 
   debugLog(debug, "Waiting for color constants module");
-  const getStatusColorMod = await webpack.waitForModule<{
-    [key: string]: string;
-  }>(webpack.filters.bySource(STATUS_COLOR_REGEX), {
-    timeout: 10000,
-  });
+  const getStatusColorMod = await webpack.waitForModule<Record<string, string>>(
+    webpack.filters.bySource(STATUS_COLOR_REGEX),
+    {
+      timeout: 10000,
+    },
+  );
   if (!getStatusColorMod) return moduleFindFailed("getStatusColorMod");
   const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
     STATUS_COLOR_REGEX,
@@ -79,7 +80,14 @@ export async function start(): Promise<void> {
   );
   if (!getStatusColor) return moduleFindFailed("getStatusColor");
 
-  const PlatformIndicator = platformIndicator(SessionStore, PresenceStore, getStatusColor);
+  debugLog(debug, "Waiting for profile badge classes module");
+  const profileBadgeMod = await webpack.waitForModule<Record<string, string>>(
+    webpack.filters.byProps("profileBadge24"),
+    {
+      timeout: 10000,
+    },
+  );
+  if (!getStatusColorMod) return moduleFindFailed("profileBadgeMod");
 
   debugLog(debug, "Waiting for injection point module");
   const injectionModule = await webpack.waitForModule<{
@@ -102,6 +110,13 @@ export async function start(): Promise<void> {
 
   fluxDispatcher.subscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Subscribed to Presence updates");
+
+  const PlatformIndicator = platformIndicator(
+    SessionStore,
+    PresenceStore,
+    getStatusColor,
+    profileBadgeMod.profileBadge24,
+  );
 
   inject.after(injectionModule, fnName, ([args], res, _) => {
     if (args.decorations && args.decorations["1"] && args.message && args.message.author) {
