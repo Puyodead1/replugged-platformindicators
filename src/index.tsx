@@ -11,6 +11,8 @@ const inject = new Injector();
 const { fluxDispatcher, users } = common;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
+const STATUS_COLOR_REGEX = /\w+.STATUS_GREEN_600/;
+
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {
   type: typeof EVENT_NAME;
@@ -37,10 +39,10 @@ export async function start(): Promise<void> {
 
   const getStatusColorMod = await webpack.waitForModule<{
     [key: string]: string;
-  }>(webpack.filters.bySource(/\w+.STATUS_GREEN_600;case/));
+  }>(webpack.filters.bySource(STATUS_COLOR_REGEX));
   if (!getStatusColorMod) return moduleFindFailed("getStatusColorMod");
   const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
-    /\w+.STATUS_GREEN_600;case/,
+    STATUS_COLOR_REGEX,
     getStatusColorMod,
   );
   if (!getStatusColor) return moduleFindFailed("getStatusColor");
