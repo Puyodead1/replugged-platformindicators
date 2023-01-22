@@ -29,17 +29,25 @@ const eventEmitter = new EventEmitter();
 export async function start(): Promise<void> {
   const SessionStore = await webpack.waitForModule<SessionStore>(
     webpack.filters.byProps("getActiveSession"),
+    {
+      timeout: 10000,
+    },
   );
   if (!SessionStore) return moduleFindFailed("SessionStore");
 
   const PresenceStore = await webpack.waitForModule<PresenceStore>(
     webpack.filters.byProps("setCurrentUserOnConnectionOpen"),
+    {
+      timeout: 10000,
+    },
   );
   if (!PresenceStore) return moduleFindFailed("PresenceStore");
 
   const getStatusColorMod = await webpack.waitForModule<{
     [key: string]: string;
-  }>(webpack.filters.bySource(STATUS_COLOR_REGEX));
+  }>(webpack.filters.bySource(STATUS_COLOR_REGEX), {
+    timeout: 10000,
+  });
   if (!getStatusColorMod) return moduleFindFailed("getStatusColorMod");
   const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
     STATUS_COLOR_REGEX,
@@ -51,7 +59,9 @@ export async function start(): Promise<void> {
 
   const injectionModule = await webpack.waitForModule<{
     [key: string]: AnyFunction;
-  }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/));
+  }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/), {
+    timeout: 10000,
+  });
   if (!injectionModule) return moduleFindFailed("injectionModule");
 
   const fnName = Object.entries(injectionModule).find(([_, v]) =>
