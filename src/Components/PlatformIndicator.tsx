@@ -74,7 +74,9 @@ function PlatformIndicator(
 
     React.useEffect(() => {
       const icons = Object.entries(status).map(([platform, status]) => {
-        const tooltip = platform[0].toUpperCase() + platform.slice(1);
+        const tooltip = `${platform[0].toUpperCase() + platform.slice(1)} - ${
+          status[0].toUpperCase() + status.slice(1)
+        }`;
         const color = getStatusColor(status);
         const Icon = Icons[platform as Platforms] ?? Icons.desktop;
         return <Icon color={`var(--${color}`} tooltip={tooltip} />;

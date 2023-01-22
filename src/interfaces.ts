@@ -44,3 +44,12 @@ export type ClientStatus = RequireAtLeastOne<{
   web: string;
   console: string;
 }>;
+
+export interface PlatformIndicatorsSettings {
+  [key: string]: string | boolean | { [key: number]: string } | null;
+  debug: boolean;
+}
+
+export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
+  debug: false,
+};

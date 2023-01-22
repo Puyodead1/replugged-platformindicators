@@ -1,14 +1,19 @@
 /* eslint-disable */
 import EventEmitter from "events";
-import { common, Injector, webpack } from "replugged";
+import { common, Injector, settings, webpack } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
 import platformIndicator from "./Components/PlatformIndicator";
-import { ClientStatus, PresenceStore, SessionStore } from "./interfaces";
+import {
+  ClientStatus,
+  PlatformIndicatorsSettings,
+  PresenceStore,
+  SessionStore,
+} from "./interfaces";
 import "./style.css";
 import { logger } from "./utils";
 
 const inject = new Injector();
-const { fluxDispatcher, users } = common;
+const { fluxDispatcher } = common;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
 const STATUS_COLOR_REGEX = /\w+.STATUS_GREEN_600/;
@@ -26,7 +31,24 @@ let presenceUpdate: (e: {
 
 const eventEmitter = new EventEmitter();
 
+const debugLog = (debug: boolean, msg: string, ...args: any[]): void => {
+  if (debug) logger.log(`[DEBUG] ${msg}`, ...args);
+};
+
 export async function start(): Promise<void> {
+  const cfg = await settings.init<PlatformIndicatorsSettings>("me.puyodead1.PlatformIndicators");
+
+  // add any new settings
+  for (const [key, value] of Object.entries(PlatformIndicatorsSettings)) {
+    if (!cfg.has(key)) {
+      logger.log(`Adding new setting ${key} with value`, value);
+      cfg.set(key, value as any);
+    }
+  }
+
+  const debug = cfg.get("debug", PlatformIndicatorsSettings.debug);
+
+  debugLog(debug, "Waiting for SessionStore module");
   const SessionStore = await webpack.waitForModule<SessionStore>(
     webpack.filters.byProps("getActiveSession"),
     {
@@ -35,6 +57,7 @@ export async function start(): Promise<void> {
   );
   if (!SessionStore) return moduleFindFailed("SessionStore");
 
+  debugLog(debug, "Waiting for PresenceStore module");
   const PresenceStore = await webpack.waitForModule<PresenceStore>(
     webpack.filters.byProps("setCurrentUserOnConnectionOpen"),
     {
@@ -43,6 +66,7 @@ export async function start(): Promise<void> {
   );
   if (!PresenceStore) return moduleFindFailed("PresenceStore");
 
+  debugLog(debug, "Waiting for color constants module");
   const getStatusColorMod = await webpack.waitForModule<{
     [key: string]: string;
   }>(webpack.filters.bySource(STATUS_COLOR_REGEX), {
@@ -57,6 +81,7 @@ export async function start(): Promise<void> {
 
   const PlatformIndicator = platformIndicator(SessionStore, PresenceStore, getStatusColor);
 
+  debugLog(debug, "Waiting for injection point module");
   const injectionModule = await webpack.waitForModule<{
     [key: string]: AnyFunction;
   }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/), {
@@ -78,7 +103,7 @@ export async function start(): Promise<void> {
   fluxDispatcher.subscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Subscribed to Presence updates");
 
-  inject.after(injectionModule, fnName, ([args], res, fn) => {
+  inject.after(injectionModule, fnName, ([args], res, _) => {
     if (args.decorations && args.decorations["1"] && args.message && args.message.author) {
       const a = <PlatformIndicator emitter={eventEmitter} user={args.message.author} />;
       args.decorations["1"].push(a);
