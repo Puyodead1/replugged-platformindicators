@@ -75,8 +75,8 @@ export async function start(): Promise<void> {
   );
   if (!getStatusColorMod) return moduleFindFailed("getStatusColorMod");
   const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
-    STATUS_COLOR_REGEX,
     getStatusColorMod,
+    STATUS_COLOR_REGEX,
   );
   if (!getStatusColor) return moduleFindFailed("getStatusColor");
 
