@@ -1,11 +1,13 @@
 /* eslint-disable */
 import { User } from "discord-types/general";
 import EventEmitter from "events";
-import { common } from "replugged";
+import Replugged, { common } from "replugged";
 import { Platforms, PresenceStore, SessionStore } from "../interfaces";
 import { logger } from "../utils";
 import Icon from "./Icon";
-const { React, users } = common;
+const { React } = common;
+
+let currentUser: User | null = null;
 
 function PlatformIndicator(
   SessionStore: SessionStore,
@@ -28,9 +30,11 @@ function PlatformIndicator(
       "0 0 50 50",
     ),
   };
-  const currentUser = users.getCurrentUser();
+
   return ({ emitter, user }: { emitter: EventEmitter; user: User }) => {
     if (!user || user.bot) return null;
+    if (currentUser == null) currentUser = Replugged.common.users.getCurrentUser();
+
     if (!currentUser) {
       logger.warn("Failed to get current user!");
       return null;

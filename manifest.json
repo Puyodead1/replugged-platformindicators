@@ -7,12 +7,13 @@
     "discordID": "498989696412549120",
     "github": "Puyodead1"
   },
-  "version": "1.0.0-beta10",
+  "version": "1.0.0-beta11",
   "updater": {
     "type": "github",
     "id": "Puyodead1/replugged-platformindicators"
   },
   "license": "MIT",
   "type": "replugged-plugin",
-  "renderer": "src/index.tsx"
+  "renderer": "src/index.tsx",
+  "reloadRequired": true
 }

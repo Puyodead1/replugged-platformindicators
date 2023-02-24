@@ -16,7 +16,7 @@ const inject = new Injector();
 const { fluxDispatcher } = common;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
-const STATUS_COLOR_REGEX = /\w+.STATUS_GREEN_600/;
+const STATUS_COLOR_REGEX = /\w+.TWITCH/;
 
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {
