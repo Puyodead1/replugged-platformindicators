@@ -16,7 +16,7 @@ const inject = new Injector();
 const { fluxDispatcher } = common;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
-const STATUS_COLOR_REGEX = /\w+.TWITCH/;
+const STATUS_COLOR_REGEX = /case\s(.{1}).\w+.STREAMING:/;
 
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {
@@ -33,6 +33,7 @@ const eventEmitter = new EventEmitter();
 
 const debugLog = (debug: boolean, msg: string, ...args: any[]): void => {
   if (debug) logger.log(`[DEBUG] ${msg}`, ...args);
+  else logger.log(msg, ...args);
 };
 
 export async function start(): Promise<void> {
@@ -87,7 +88,7 @@ export async function start(): Promise<void> {
       timeout: 10000,
     },
   );
-  if (!getStatusColorMod) return moduleFindFailed("profileBadgeMod");
+  if (!profileBadgeMod) return moduleFindFailed("profileBadgeMod");
 
   debugLog(debug, "Waiting for injection point module");
   const injectionModule = await webpack.waitForModule<{
