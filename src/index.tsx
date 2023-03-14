@@ -7,7 +7,7 @@ import {
   ClientStatus,
   PlatformIndicatorsSettings,
   PresenceStore,
-  SessionStore,
+  SessionStore
 } from "./interfaces";
 import "./style.css";
 import { logger } from "./utils";
@@ -16,7 +16,7 @@ const inject = new Injector();
 const { fluxDispatcher } = common;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
-const STATUS_COLOR_REGEX = /case\s(.{1}).\w+.STREAMING:/;
+const STATUS_COLOR_REGEX = /case\s\w+\.\w+\.ONLINE:.+case\s\w+\.\w+\.IDLE:/;
 
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {
