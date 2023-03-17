@@ -135,9 +135,7 @@ export async function start(): Promise<void> {
           <PlatformIndicator user={user} />
         </ErrorBoundary>
       );
-      if (a) {
-        args.decorations["1"].push(a);
-      }
+      args.decorations[1].push(a);
     }
     return res;
   });
