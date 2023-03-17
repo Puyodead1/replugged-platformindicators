@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { User } from "discord-types/general";
-import EventEmitter from "events";
 import Replugged, { common } from "replugged";
+import { eventEmitter } from "..";
 import { Platforms, PresenceStore, SessionStore } from "../interfaces";
 import { logger } from "../utils";
 import Icon from "./Icon";
@@ -31,7 +31,7 @@ function PlatformIndicator(
     ),
   };
 
-  return ({ emitter, user }: { emitter: EventEmitter; user: User }) => {
+  return ({ user }: { user: User }) => {
     if (!user || user.bot) return null;
     if (currentUser == null) currentUser = Replugged.common.users.getCurrentUser();
 
@@ -72,9 +72,13 @@ function PlatformIndicator(
     const [icons, setIcons] = React.useState<any[]>([]);
 
     React.useEffect(() => {
-      emitter.on(user.id, (data) => {
+      eventEmitter.on(user.id, (data) => {
         setStatus(data);
       });
+
+      return () => {
+        eventEmitter.removeListener(user.id, () => {});
+      };
     }, []);
 
     React.useEffect(() => {

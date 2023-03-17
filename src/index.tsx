@@ -7,7 +7,7 @@ import {
   ClientStatus,
   PlatformIndicatorsSettings,
   PresenceStore,
-  SessionStore
+  SessionStore,
 } from "./interfaces";
 import "./style.css";
 import { logger } from "./utils";
@@ -29,7 +29,7 @@ let presenceUpdate: (e: {
   }[];
 }) => void;
 
-const eventEmitter = new EventEmitter();
+export const eventEmitter = new EventEmitter();
 
 const debugLog = (debug: boolean, msg: string, ...args: any[]): void => {
   if (debug) logger.log(`[DEBUG] ${msg}`, ...args);
@@ -121,7 +121,7 @@ export async function start(): Promise<void> {
 
   inject.after(injectionModule, fnName, ([args], res, _) => {
     if (args.decorations && args.decorations["1"] && args.message && args.message.author) {
-      const a = <PlatformIndicator emitter={eventEmitter} user={args.message.author} />;
+      const a = <PlatformIndicator user={args.message.author} />;
       args.decorations["1"].push(a);
     }
     return res;
@@ -132,4 +132,5 @@ export function stop(): void {
   inject.uninjectAll();
   fluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Unsubscribed from Presence updates");
+  eventEmitter.removeAllListeners();
 }
