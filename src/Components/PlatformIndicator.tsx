@@ -32,6 +32,8 @@ function PlatformIndicator(
   };
 
   return ({ user }: { user: User }) => {
+    const [icons, setIcons] = React.useState<any[]>([]);
+
     if (!user || user.bot) return null;
     if (currentUser == null) currentUser = Replugged.common.users.getCurrentUser();
 
@@ -62,8 +64,6 @@ function PlatformIndicator(
       const { clientStatuses } = PresenceStore.getState();
       clientStatuses[currentUser.id as Platforms] = ownStatus as string;
     }
-
-    const [icons, setIcons] = React.useState<any[]>([]);
 
     const statuses = useStateFromStore(
       [PresenceStore],
