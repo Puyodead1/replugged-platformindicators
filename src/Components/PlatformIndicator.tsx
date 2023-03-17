@@ -1,7 +1,6 @@
 /* eslint-disable */
 import { User } from "discord-types/general";
 import Replugged, { common } from "replugged";
-import { eventEmitter } from "..";
 import { Platforms, PresenceStore, SessionStore } from "../interfaces";
 import { logger } from "../utils";
 import Icon from "./Icon";
@@ -10,6 +9,7 @@ const { React } = common;
 let currentUser: User | null = null;
 
 function PlatformIndicator(
+  useStateFromStore: (store: any[], cb: () => unknown) => PresenceStore,
   SessionStore: SessionStore,
   PresenceStore: PresenceStore,
   getStatusColor: (status: string) => string,
@@ -63,26 +63,16 @@ function PlatformIndicator(
       clientStatuses[currentUser.id as Platforms] = ownStatus as string;
     }
 
-    const currentStatus = PresenceStore.getState()?.clientStatuses?.[user.id] as Record<
-      Platforms,
-      string
-    >;
-    if (!currentStatus) return null;
-    const [status, setStatus] = React.useState(currentStatus);
     const [icons, setIcons] = React.useState<any[]>([]);
 
-    React.useEffect(() => {
-      eventEmitter.on(user.id, (data) => {
-        setStatus(data);
-      });
-
-      return () => {
-        eventEmitter.removeListener(user.id, () => {});
-      };
-    }, []);
+    const statuses = useStateFromStore(
+      [PresenceStore],
+      () => PresenceStore.getState().clientStatuses[user.id],
+    );
+    if (!statuses) return null;
 
     React.useEffect(() => {
-      const icons = Object.entries(status).map(([platform, status]) => {
+      const icons = Object.entries(statuses).map(([platform, status]) => {
         const tooltip = `${platform[0].toUpperCase() + platform.slice(1)} - ${
           status[0].toUpperCase() + status.slice(1)
         }`;
@@ -91,7 +81,7 @@ function PlatformIndicator(
         return <Icon color={`var(--${color}`} tooltip={tooltip} className={profileBadge24} />;
       });
       setIcons(icons);
-    }, [status]);
+    }, [statuses]);
 
     return <div className="platform-indicators">{icons}</div>;
   };

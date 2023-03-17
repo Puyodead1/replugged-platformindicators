@@ -1,7 +1,6 @@
 /* eslint-disable */
-import EventEmitter from "events";
 import { common, Injector, settings, webpack } from "replugged";
-import { AnyFunction } from "replugged/dist/types";
+import { AnyFunction, ObjectExports } from "replugged/dist/types";
 import platformIndicator from "./Components/PlatformIndicator";
 import {
   ClientStatus,
@@ -28,8 +27,6 @@ let presenceUpdate: (e: {
     user: { id: string };
   }[];
 }) => void;
-
-export const eventEmitter = new EventEmitter();
 
 const debugLog = (debug: boolean, msg: string, ...args: any[]): void => {
   if (debug) logger.log(`[DEBUG] ${msg}`, ...args);
@@ -90,6 +87,23 @@ export async function start(): Promise<void> {
   );
   if (!profileBadgeMod) return moduleFindFailed("profileBadgeMod");
 
+  debugLog(debug, "Waiting for profile badge classes module");
+  const useStateFromStoreMod = await webpack.waitForModule<ObjectExports>(
+    webpack.filters.bySource("useStateFromStore"),
+    {
+      timeout: 10000,
+    },
+  );
+  if (!useStateFromStoreMod) return moduleFindFailed("useStateFromStoreMod");
+
+  const usfsFnName = webpack.getFunctionKeyBySource(
+    useStateFromStoreMod as any,
+    "useStateFromStore",
+  ) as string;
+  if (!usfsFnName) return logger.error("Failed to get function name for useStateFromStoreMod");
+
+  const useStateFromStore = useStateFromStoreMod[usfsFnName] as any;
+
   debugLog(debug, "Waiting for injection point module");
   const injectionModule = await webpack.waitForModule<{
     [key: string]: AnyFunction;
@@ -103,16 +117,8 @@ export async function start(): Promise<void> {
   )?.[0];
   if (!fnName) return logger.error("Failed to get function name");
 
-  presenceUpdate = ({ updates }) => {
-    for (const u of updates) {
-      eventEmitter.emit(u.user.id, u.clientStatus);
-    }
-  };
-
-  fluxDispatcher.subscribe(EVENT_NAME, presenceUpdate as any);
-  logger.log("Subscribed to Presence updates");
-
   const PlatformIndicator = platformIndicator(
+    useStateFromStore,
     SessionStore,
     PresenceStore,
     getStatusColor,
@@ -132,5 +138,4 @@ export function stop(): void {
   inject.uninjectAll();
   fluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Unsubscribed from Presence updates");
-  eventEmitter.removeAllListeners();
 }
