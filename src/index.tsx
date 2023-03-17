@@ -1,5 +1,6 @@
 /* eslint-disable */
-import { common, Injector, settings, webpack } from "replugged";
+import { User } from "discord-types/general";
+import { common, components, Injector, settings, webpack } from "replugged";
 import { AnyFunction, ObjectExports } from "replugged/dist/types";
 import platformIndicator from "./Components/PlatformIndicator";
 import {
@@ -13,6 +14,7 @@ import { logger } from "./utils";
 
 const inject = new Injector();
 const { fluxDispatcher } = common;
+const { ErrorBoundary } = components;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
 const STATUS_COLOR_REGEX = /case\s\w+\.\w+\.ONLINE:.+case\s\w+\.\w+\.IDLE:/;
@@ -87,7 +89,7 @@ export async function start(): Promise<void> {
   );
   if (!profileBadgeMod) return moduleFindFailed("profileBadgeMod");
 
-  debugLog(debug, "Waiting for profile badge classes module");
+  debugLog(debug, "Waiting for userStateFromStore module");
   const useStateFromStoreMod = await webpack.waitForModule<ObjectExports>(
     webpack.filters.bySource("useStateFromStore"),
     {
@@ -117,18 +119,26 @@ export async function start(): Promise<void> {
   )?.[0];
   if (!fnName) return logger.error("Failed to get function name");
 
-  const PlatformIndicator = platformIndicator(
+  const PlatformIndicator = platformIndicator({
     useStateFromStore,
     SessionStore,
     PresenceStore,
     getStatusColor,
-    profileBadgeMod.profileBadge24,
-  );
+    profileBadge24: profileBadgeMod.profileBadge24,
+  });
 
   inject.after(injectionModule, fnName, ([args], res, _) => {
-    if (args.decorations && args.decorations["1"] && args.message && args.message.author) {
-      const a = <PlatformIndicator user={args.message.author} />;
-      args.decorations["1"].push(a);
+    const user = args.message.author as User;
+    if (args.decorations && args.decorations["1"] && args.message && user) {
+      const a = (
+        <ErrorBoundary>
+          <PlatformIndicator user={user} />
+        </ErrorBoundary>
+      );
+      if (a) {
+        console.log(a);
+        args.decorations["1"].push(a);
+      }
     }
     return res;
   });
