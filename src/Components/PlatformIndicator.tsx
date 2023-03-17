@@ -42,6 +42,12 @@ function PlatformIndicator(
       return null;
     }
 
+    const statuses = useStateFromStore(
+      [PresenceStore],
+      () => PresenceStore.getState().clientStatuses[user.id],
+    );
+    if (!statuses) return null;
+
     if (user.id === currentUser.id) {
       const sessions = SessionStore.getSessions();
       if (typeof sessions !== "object") return null;
@@ -64,12 +70,6 @@ function PlatformIndicator(
       const { clientStatuses } = PresenceStore.getState();
       clientStatuses[currentUser.id as Platforms] = ownStatus as string;
     }
-
-    const statuses = useStateFromStore(
-      [PresenceStore],
-      () => PresenceStore.getState().clientStatuses[user.id],
-    );
-    if (!statuses) return null;
 
     React.useEffect(() => {
       const icons = Object.entries(statuses).map(([platform, status]) => {
