@@ -136,7 +136,6 @@ export async function start(): Promise<void> {
         </ErrorBoundary>
       );
       if (a) {
-        console.log(a);
         args.decorations["1"].push(a);
       }
     }
