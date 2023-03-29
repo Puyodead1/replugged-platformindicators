@@ -10,7 +10,7 @@ import {
   SessionStore,
 } from "./interfaces";
 import "./style.css";
-import { logger } from "./utils";
+import { debugLog, logger } from "./utils";
 
 const inject = new Injector();
 const { fluxDispatcher } = common;
@@ -29,11 +29,6 @@ let presenceUpdate: (e: {
     user: { id: string };
   }[];
 }) => void;
-
-const debugLog = (debug: boolean, msg: string, ...args: any[]): void => {
-  if (debug) logger.log(`[DEBUG] ${msg}`, ...args);
-  else logger.log(msg, ...args);
-};
 
 export async function start(): Promise<void> {
   const cfg = await settings.init<PlatformIndicatorsSettings>("me.puyodead1.PlatformIndicators");
