@@ -64,7 +64,7 @@ function TheRealPlatformIndicator(props: PropsWithUser) {
       return <Icon color={`var(--${color}`} tooltip={tooltip} className={profileBadge24} />;
     });
     setIcons(icons);
-  }, [statuses]);
+  }, []);
 
   if (user.id === currentUser.id) {
     const sessions = SessionStore.getSessions();
