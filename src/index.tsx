@@ -101,19 +101,6 @@ export async function start(): Promise<void> {
 
   const useStateFromStore = useStateFromStoreMod[usfsFnName] as any;
 
-  debugLog(debug, "Waiting for injection point module");
-  const injectionModule = await webpack.waitForModule<{
-    [key: string]: AnyFunction;
-  }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/), {
-    timeout: 10000,
-  });
-  if (!injectionModule) return moduleFindFailed("injectionModule");
-
-  const fnName = Object.entries(injectionModule).find(([_, v]) =>
-    v.toString()?.match(/.withMentionPrefix/),
-  )?.[0];
-  if (!fnName) return logger.error("Failed to get function name");
-
   const PlatformIndicator = platformIndicator({
     useStateFromStore,
     SessionStore,
@@ -122,7 +109,21 @@ export async function start(): Promise<void> {
     profileBadge24: profileBadgeMod.profileBadge24,
   });
 
-  inject.after(injectionModule, fnName, ([args], res, _) => {
+  debugLog(debug, "Waiting for injection point module");
+
+  const messageHeaderModule = await webpack.waitForModule<{
+    [key: string]: AnyFunction;
+  }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/), {
+    timeout: 10000,
+  });
+  if (!messageHeaderModule) return moduleFindFailed("messageHeaderModule");
+
+  const messageHeaderFnName = Object.entries(messageHeaderModule).find(([_, v]) =>
+    v.toString()?.match(/.withMentionPrefix/),
+  )?.[0];
+  if (!messageHeaderFnName) return logger.error("Failed to get message header function name");
+
+  inject.after(messageHeaderModule, messageHeaderFnName, ([args], res, _) => {
     const user = args.message.author as User;
     if (args.decorations && args.decorations["1"] && args.message && user) {
       const a = (
@@ -134,6 +135,45 @@ export async function start(): Promise<void> {
     }
     return res;
   });
+
+  const memberListModule = await webpack.waitForModule<{
+    [key: string]: {
+      $$typeof: symbol;
+      compare: null;
+      type: AnyFunction;
+    };
+  }>(webpack.filters.bySource("({canUseAvatarDecorations:"), {
+    timeout: 10000,
+  });
+  if (!memberListModule) return moduleFindFailed("memberListModule");
+
+  const memberListMemo = Object.entries(memberListModule).find(([_, v]) => v.type)?.[1];
+  if (!memberListMemo) return logger.error("Failed to get member list item memo");
+
+  const unpatchMemo = inject.after(
+    memberListMemo,
+    "type",
+    (_args, res: { type: AnyFunction }, _) => {
+      inject.after(
+        res.type.prototype,
+        "renderDecorators",
+        (args, res, instance: { props?: { user: User } }) => {
+          const user = instance?.props?.user;
+          if (Array.isArray(res?.props?.children) && user) {
+            const a = (
+              <ErrorBoundary>
+                <PlatformIndicator user={user} />
+              </ErrorBoundary>
+            );
+            res.props.children.push(a);
+          }
+          return res;
+        },
+      );
+
+      unpatchMemo();
+    },
+  );
 }
 
 export function stop(): void {
