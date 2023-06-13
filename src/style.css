@@ -1,7 +1,6 @@
 .platform-indicators {
   display: inline-flex;
   align-items: center;
-  vertical-align: top;
   position: relative;
   margin-left: 2px;
 }

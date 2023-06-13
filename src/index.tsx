@@ -10,7 +10,7 @@ import {
   SessionStore,
 } from "./interfaces";
 import "./style.css";
-import { debugLog, logger } from "./utils";
+import { addNewSettings, debugLog, logger, resetSettings } from "./utils";
 
 const inject = new Injector();
 const { fluxDispatcher } = common;
@@ -18,6 +18,11 @@ const { ErrorBoundary } = components;
 const EVENT_NAME = "PRESENCE_UPDATES";
 
 const STATUS_COLOR_REGEX = /case\s\w+\.\w+\.ONLINE:.+case\s\w+\.\w+\.IDLE:/;
+
+export const cfg = await settings.init<
+  PlatformIndicatorsSettings,
+  keyof typeof PlatformIndicatorsSettings
+>("me.puyodead1.PlatformIndicators");
 
 const moduleFindFailed = (name: string): void => logger.error(`Module ${name} not found!`);
 let presenceUpdate: (e: {
@@ -31,15 +36,10 @@ let presenceUpdate: (e: {
 }) => void;
 
 export async function start(): Promise<void> {
-  const cfg = await settings.init<PlatformIndicatorsSettings>("me.puyodead1.PlatformIndicators");
+  if (cfg.get("resetSettings", PlatformIndicatorsSettings.resetSettings)) resetSettings();
 
   // add any new settings
-  for (const [key, value] of Object.entries(PlatformIndicatorsSettings)) {
-    if (!cfg.has(key)) {
-      logger.log(`Adding new setting ${key} with value`, value);
-      cfg.set(key, value as any);
-    }
-  }
+  addNewSettings();
 
   const debug = cfg.get("debug", PlatformIndicatorsSettings.debug);
 
@@ -181,3 +181,5 @@ export function stop(): void {
   fluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Unsubscribed from Presence updates");
 }
+
+export { Settings } from "./Components/Settings";

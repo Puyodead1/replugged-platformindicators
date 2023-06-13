@@ -46,10 +46,17 @@ export type ClientStatus = RequireAtLeastOne<{
 }>;
 
 export interface PlatformIndicatorsSettings {
-  [key: string]: string | boolean | { [key: number]: string } | null;
   debug: boolean;
+  renderInChat: boolean;
+  renderInMemberList: boolean;
+  resetSettings: boolean;
+  size: number;
 }
 
 export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   debug: false,
+  renderInChat: true,
+  renderInMemberList: true,
+  resetSettings: false,
+  size: 20,
 };
