@@ -50,7 +50,6 @@ export interface PlatformIndicatorsSettings {
   renderInChat: boolean;
   renderInMemberList: boolean;
   resetSettings: boolean;
-  size: number;
 }
 
 export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
@@ -58,5 +57,4 @@ export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   renderInChat: true,
   renderInMemberList: true,
   resetSettings: false,
-  size: 20,
 };

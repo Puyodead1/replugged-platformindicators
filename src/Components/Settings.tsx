@@ -1,7 +1,7 @@
 import { common, components, util } from "replugged";
 import { cfg } from "..";
 import { resetSettings } from "../utils";
-const { SwitchItem, SliderItem, Button, Text } = components;
+const { SwitchItem, Button, Text } = components;
 const { React } = common;
 
 const ManifestJSON = require("../../manifest.json");
@@ -20,14 +20,6 @@ export function Settings() {
       <SwitchItem note="Toggle rendering in Chat" {...util.useSetting(cfg, "renderInChat")}>
         Show in Chat
       </SwitchItem>
-
-      <SliderItem
-        {...util.useSetting(cfg, "size", 20)}
-        minValue={8}
-        maxValue={32}
-        markers={[8, 12, 16, 20, 24, 28, 32]}>
-        Slider title
-      </SliderItem>
 
       <div style={{ marginBottom: 20 }}>
         <div style={{ marginBottom: 20, display: "flex", justifyContent: "center" }}>

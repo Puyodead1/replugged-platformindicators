@@ -124,6 +124,8 @@ export async function start(): Promise<void> {
   if (!messageHeaderFnName) return logger.error("Failed to get message header function name");
 
   inject.after(messageHeaderModule, messageHeaderFnName, ([args], res, _) => {
+    console.log(cfg.get("renderInChat"));
+
     const user = args.message.author as User;
     if (args.decorations && args.decorations["1"] && args.message && user) {
       const a = (
@@ -158,6 +160,8 @@ export async function start(): Promise<void> {
         res.type.prototype,
         "renderDecorators",
         (args, res, instance: { props?: { user: User } }) => {
+          if (!cfg.get("renderInMemberList")) return res;
+
           const user = instance?.props?.user;
           if (Array.isArray(res?.props?.children) && user) {
             const a = (

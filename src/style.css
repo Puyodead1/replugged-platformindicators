@@ -2,5 +2,7 @@
   display: inline-flex;
   align-items: center;
   position: relative;
-  margin-left: 2px;
+  margin-left: 0.25rem;
+  vertical-align: bottom;
+  top: 1px;
 }
