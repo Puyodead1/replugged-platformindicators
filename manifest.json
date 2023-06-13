@@ -7,7 +7,7 @@
     "discordID": "498989696412549120",
     "github": "Puyodead1"
   },
-  "version": "1.1.23",
+  "version": "1.1.24",
   "updater": {
     "type": "store",
     "id": "me.puyodead1.PlatformIndicators"
@@ -15,5 +15,6 @@
   "license": "MIT",
   "type": "replugged-plugin",
   "renderer": "src/index.tsx",
-  "reloadRequired": true
+  "reloadRequired": true,
+  "source": "https://github.com/Puyodead1/replugged-platformindicators"
 }
