@@ -1,7 +1,8 @@
 /* eslint-disable */
 import { User } from "discord-types/general";
-import { common, components, Injector, settings, webpack } from "replugged";
+import { common, components, Injector, settings, webpack, util } from "replugged";
 import { AnyFunction, ObjectExports } from "replugged/dist/types";
+import type { ReactElement } from "react";
 import platformIndicator from "./Components/PlatformIndicator";
 import {
   ClientStatus,
@@ -175,6 +176,63 @@ export async function start(): Promise<void> {
       );
 
       unpatchMemo();
+    },
+  );
+
+  const directMessageListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
+    webpack.filters.bySource(".interactiveSystemDM"),
+    {
+      timeout: 10000,
+    },
+  );
+  if (!directMessageListModule) return moduleFindFailed("directMessageListModule ");
+
+  const directMessageListFnName = Object.entries(directMessageListModule).find(([_, v]) =>
+    v.toString()?.includes(".getAnyStreamForUser("),
+  )?.[0];
+  if (!directMessageListFnName) return logger.error("Failed to get message header function name");
+  const unpatchConstructor = inject.after(
+    directMessageListModule,
+    directMessageListFnName,
+    (_args, res: { type: AnyFunction }, _) => {
+      inject.after(
+        res.type.prototype,
+        "render",
+        (_args, res: { type: AnyFunction }, instance: { props?: { user: User } }) => {
+          const user = instance?.props?.user;
+          if (!cfg.get("renderInDirectMessageList") || !user) return res;
+          inject.after(res, "type", (_args, res: ReactElement, _) => {
+            const { findInReactTree } = util as unknown as {
+              findInReactTree: (
+                tree: ReactElement,
+                filter: AnyFunction,
+                maxRecursions?: number,
+              ) => ReactElement;
+            };
+            const container = findInReactTree(
+              res,
+              (c) => c?.props?.avatar && c?.props?.name && c?.props?.subText,
+            );
+            if (!container) return res;
+            const a = (
+              <ErrorBoundary>
+                <PlatformIndicator user={user} />
+              </ErrorBoundary>
+            );
+            if (Array.isArray(container.props.decorators)) {
+              container?.props?.decorators.push(a);
+            } else if (container.props.decorators === null) {
+              container.props.decorators = [a];
+            } else {
+              container.props.decorators = [...Array.from(container.props.decorators), a];
+            }
+            return res;
+          });
+          return res;
+        },
+      );
+
+      unpatchConstructor();
     },
   );
 }

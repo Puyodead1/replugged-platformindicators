@@ -49,6 +49,7 @@ export interface PlatformIndicatorsSettings {
   debug: boolean;
   renderInChat: boolean;
   renderInMemberList: boolean;
+  renderInDirectMessageList: boolean;
   resetSettings: boolean;
 }
 
@@ -56,5 +57,6 @@ export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   debug: false,
   renderInChat: true,
   renderInMemberList: true,
+  renderInDirectMessageList: true,
   resetSettings: false,
 };
