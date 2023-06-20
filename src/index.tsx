@@ -198,10 +198,14 @@ export async function start(): Promise<void> {
       inject.after(
         res.type.prototype,
         "render",
-        (_args, res: { type: AnyFunction }, instance: { props?: { user: User } }) => {
+        (
+          _args,
+          res: { props: { children: AnyFunction } },
+          instance: { props?: { user: User } },
+        ) => {
           const user = instance?.props?.user;
           if (!cfg.get("renderInDirectMessageList") || !user) return res;
-          inject.after(res, "type", (_args, res: ReactElement, _) => {
+          inject.after(res.props, "children", (_args, res: ReactElement, _) => {
             const { findInReactTree } = util as unknown as {
               findInReactTree: (
                 tree: ReactElement,
