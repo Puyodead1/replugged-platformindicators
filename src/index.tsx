@@ -11,9 +11,9 @@ import {
   SessionStore,
 } from "./interfaces";
 import "./style.css";
-import { addNewSettings, debugLog, logger, resetSettings } from "./utils";
+import { addNewSettings, debugLog, forceRerenderElement, logger, resetSettings } from "./utils";
 
-const inject = new Injector();
+export const inject = new Injector();
 const { fluxDispatcher } = common;
 const { ErrorBoundary } = components;
 const EVENT_NAME = "PRESENCE_UPDATES";
@@ -235,10 +235,11 @@ export async function start(): Promise<void> {
           return res;
         },
       );
-
       unpatchConstructor();
     },
   );
+  await util.waitFor("[class^=layout-]");
+  forceRerenderElement("[class^=privateChannels-]");
 }
 
 export function stop(): void {
