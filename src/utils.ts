@@ -1,6 +1,6 @@
-import { Logger } from "replugged";
+import { Logger, util } from "replugged";
 import { PlatformIndicatorsSettings } from "./interfaces";
-import { cfg } from ".";
+import { cfg, inject } from ".";
 
 export const logger = Logger.plugin("PlatformIndicators");
 
@@ -30,4 +30,14 @@ export function addNewSettings(): void {
       cfg.set(key as keyof PlatformIndicatorsSettings, value as never);
     }
   }
+}
+export function forceRerenderElement(selector: string): void {
+  const element = document.querySelector(selector);
+  if (!element) return;
+  const ownerInstance = util.getOwnerInstance(element);
+  const unpatchRender = inject.instead(ownerInstance, "render", () => {
+    unpatchRender();
+    return null;
+  });
+  ownerInstance.forceUpdate(() => ownerInstance.forceUpdate(() => {}));
 }

@@ -1,7 +1,8 @@
 /* eslint-disable */
 import { User } from "discord-types/general";
-import { common, components, Injector, settings, webpack } from "replugged";
+import { common, components, Injector, settings, webpack, util } from "replugged";
 import { AnyFunction, ObjectExports } from "replugged/dist/types";
+import type { ReactElement } from "react";
 import platformIndicator from "./Components/PlatformIndicator";
 import {
   ClientStatus,
@@ -10,9 +11,9 @@ import {
   SessionStore,
 } from "./interfaces";
 import "./style.css";
-import { addNewSettings, debugLog, logger, resetSettings } from "./utils";
+import { addNewSettings, debugLog, forceRerenderElement, logger, resetSettings } from "./utils";
 
-const inject = new Injector();
+export const inject = new Injector();
 const { fluxDispatcher } = common;
 const { ErrorBoundary } = components;
 const EVENT_NAME = "PRESENCE_UPDATES";
@@ -123,17 +124,52 @@ export async function start(): Promise<void> {
   )?.[0];
   if (!messageHeaderFnName) return logger.error("Failed to get message header function name");
 
-  inject.after(messageHeaderModule, messageHeaderFnName, ([args], res, _) => {
-    if (!cfg.get("renderInChat")) return undefined;
-    const user = args.message.author as User;
-    if (args.decorations && args.decorations["1"] && args.message && user) {
+  inject.before(messageHeaderModule, messageHeaderFnName, (args, _) => {
+    if (!cfg.get("renderInChat")) return args;
+    const user = args[0].message.author as User;
+    if (args[0].decorations && args[0].decorations["1"] && args[0].message && user) {
       const a = (
         <ErrorBoundary>
           <PlatformIndicator user={user} />
         </ErrorBoundary>
       );
-      args.decorations[1].push(a);
+      args[0].decorations[1].push(a);
     }
+    return args;
+  });
+
+  const userBadClasses = await webpack.waitForProps<Record<string, string>>("containerWithContent");
+
+  const userBadgeModule = await webpack.waitForModule<{
+    [key: string]: AnyFunction;
+  }>(webpack.filters.bySource("getBadges()"));
+
+  const userBadgeFnName = Object.entries(userBadgeModule).find(
+    ([_, v]) => typeof v === "function",
+  )?.[0];
+  if (!userBadgeFnName) return logger.error("Failed to get user badge function name");
+
+  inject.after(userBadgeModule, userBadgeFnName, ([args], res: ReactElement, _) => {
+    if (!cfg.get("renderInProfile")) return res;
+    const user = args.user as User;
+
+    const theChildren = res?.props?.children;
+    if (!theChildren || !user) return res;
+    const a = (
+      <ErrorBoundary>
+        <PlatformIndicator user={user} />
+      </ErrorBoundary>
+    );
+    res.props.children = [a, ...theChildren];
+
+    if (theChildren.length > 0) {
+      if (!res.props.className.includes(userBadClasses?.containerWithContent))
+        res.props.className += ` ${userBadClasses?.containerWithContent}`;
+
+      if (!res.props.className.includes("platform-indicator-badge-container"))
+        res.props.className += " platform-indicator-badge-container";
+    }
+
     return res;
   });
 
@@ -177,6 +213,68 @@ export async function start(): Promise<void> {
       unpatchMemo();
     },
   );
+
+  const directMessageListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
+    webpack.filters.bySource(".interactiveSystemDM"),
+    {
+      timeout: 10000,
+    },
+  );
+  if (!directMessageListModule) return moduleFindFailed("directMessageListModule ");
+
+  const directMessageListFnName = Object.entries(directMessageListModule).find(([_, v]) =>
+    v.toString()?.includes(".getAnyStreamForUser("),
+  )?.[0];
+  if (!directMessageListFnName) return logger.error("Failed to get message header function name");
+  const unpatchConstructor = inject.after(
+    directMessageListModule,
+    directMessageListFnName,
+    (_args, res: { type: AnyFunction }, _) => {
+      inject.after(
+        res.type.prototype,
+        "render",
+        (
+          _args,
+          res: { props: { children: AnyFunction } },
+          instance: { props?: { user: User } },
+        ) => {
+          const user = instance?.props?.user;
+          if (!cfg.get("renderInDirectMessageList") || !user) return res;
+          inject.after(res.props, "children", (_args, res: ReactElement, _) => {
+            const { findInReactTree } = util as unknown as {
+              findInReactTree: (
+                tree: ReactElement,
+                filter: AnyFunction,
+                maxRecursions?: number,
+              ) => ReactElement;
+            };
+            const container = findInReactTree(
+              res,
+              (c) => c?.props?.avatar && c?.props?.name && c?.props?.subText,
+            );
+            if (!container) return res;
+            const a = (
+              <ErrorBoundary>
+                <PlatformIndicator user={user} />
+              </ErrorBoundary>
+            );
+            if (Array.isArray(container.props.decorators)) {
+              container?.props?.decorators.push(a);
+            } else if (container.props.decorators === null) {
+              container.props.decorators = [a];
+            } else {
+              container.props.decorators = [...Array.from(container.props.decorators), a];
+            }
+            return res;
+          });
+          return res;
+        },
+      );
+      unpatchConstructor();
+    },
+  );
+  await util.waitFor("[class^=layout-]");
+  forceRerenderElement("[class^=privateChannels-]");
 }
 
 export function stop(): void {

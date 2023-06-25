@@ -12,6 +12,18 @@ export function Settings() {
   return (
     <div>
       <SwitchItem
+        note="Toggle rendering in the DM List"
+        {...util.useSetting(cfg, "renderInDirectMessageList")}>
+        Show in DM List
+      </SwitchItem>
+
+      <SwitchItem
+        note="Toggle rendering in the User Profile as badge"
+        {...util.useSetting(cfg, "renderInProfile")}>
+        Show in User Profile
+      </SwitchItem>
+
+      <SwitchItem
         note="Toggle rendering in the Member List"
         {...util.useSetting(cfg, "renderInMemberList")}>
         Show in Member List
