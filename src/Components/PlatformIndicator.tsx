@@ -9,7 +9,7 @@ const { React } = common;
 let currentUser: User | null = null;
 
 interface Props {
-  useStateFromStore: (store: any[], cb: () => unknown) => PresenceStore;
+  useStateFromStore: (store: any[], cb: () => unknown, data: any[]) => PresenceStore;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   getStatusColor: (status: string) => string;
@@ -52,6 +52,7 @@ function TheRealPlatformIndicator(props: PropsWithUser) {
   const statuses = useStateFromStore(
     [PresenceStore],
     () => PresenceStore.getState().clientStatuses[user.id],
+    [user.id],
   );
 
   React.useEffect(() => {
@@ -64,7 +65,7 @@ function TheRealPlatformIndicator(props: PropsWithUser) {
       return <Icon color={`var(--${color}`} tooltip={tooltip} className={profileBadge24} />;
     });
     setIcons(icons);
-  }, []);
+  }, [statuses]);
 
   if (user.id === currentUser.id) {
     const sessions = SessionStore.getSessions();
@@ -95,7 +96,9 @@ function TheRealPlatformIndicator(props: PropsWithUser) {
   return <div className="platform-indicators">{icons}</div>;
 }
 
-const MemorizedTheRealPlatformIndicator = React.memo(TheRealPlatformIndicator);
+const MemorizedTheRealPlatformIndicator = React.memo(
+  TheRealPlatformIndicator,
+) as React.FC<PropsWithUser>;
 
 function PlatformIndicator(props: Props) {
   return ({ user }: { user: User }) => {
