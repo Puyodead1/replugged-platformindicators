@@ -48,6 +48,7 @@ export type ClientStatus = RequireAtLeastOne<{
 export interface PlatformIndicatorsSettings {
   debug: boolean;
   renderInChat: boolean;
+  renderInProfile: boolean;
   renderInMemberList: boolean;
   renderInDirectMessageList: boolean;
   resetSettings: boolean;
@@ -56,6 +57,7 @@ export interface PlatformIndicatorsSettings {
 export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   debug: false,
   renderInChat: true,
+  renderInProfile: true,
   renderInMemberList: true,
   renderInDirectMessageList: true,
   resetSettings: false,

@@ -124,17 +124,52 @@ export async function start(): Promise<void> {
   )?.[0];
   if (!messageHeaderFnName) return logger.error("Failed to get message header function name");
 
-  inject.after(messageHeaderModule, messageHeaderFnName, ([args], res, _) => {
-    if (!cfg.get("renderInChat")) return undefined;
-    const user = args.message.author as User;
-    if (args.decorations && args.decorations["1"] && args.message && user) {
+  inject.before(messageHeaderModule, messageHeaderFnName, (args, _) => {
+    if (!cfg.get("renderInChat")) return args;
+    const user = args[0].message.author as User;
+    if (args[0].decorations && args[0].decorations["1"] && args[0].message && user) {
       const a = (
         <ErrorBoundary>
           <PlatformIndicator user={user} />
         </ErrorBoundary>
       );
-      args.decorations[1].push(a);
+      args[0].decorations[1].push(a);
     }
+    return args;
+  });
+
+  const userBadClasses = await webpack.waitForProps<Record<string, string>>("containerWithContent");
+
+  const userBadgeModule = await webpack.waitForModule<{
+    [key: string]: AnyFunction;
+  }>(webpack.filters.bySource("getBadges()"));
+
+  const userBadgeFnName = Object.entries(userBadgeModule).find(
+    ([_, v]) => typeof v === "function",
+  )?.[0];
+  if (!userBadgeFnName) return logger.error("Failed to get user badge function name");
+
+  inject.after(userBadgeModule, userBadgeFnName, ([args], res: ReactElement, _) => {
+    if (!cfg.get("renderInProfile")) return res;
+    const user = args.user as User;
+
+    const theChildren = res?.props?.children;
+    if (!theChildren || !user) return res;
+    const a = (
+      <ErrorBoundary>
+        <PlatformIndicator user={user} />
+      </ErrorBoundary>
+    );
+    res.props.children = [a, ...theChildren];
+
+    if (theChildren.length > 0) {
+      if (!res.props.className.includes(userBadClasses?.containerWithContent))
+        res.props.className += ` ${userBadClasses?.containerWithContent}`;
+
+      if (!res.props.className.includes("platform-indicator-badge-container"))
+        res.props.className += " platform-indicator-badge-container";
+    }
+
     return res;
   });
 

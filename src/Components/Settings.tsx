@@ -18,6 +18,12 @@ export function Settings() {
       </SwitchItem>
 
       <SwitchItem
+        note="Toggle rendering in the User Profile as badge"
+        {...util.useSetting(cfg, "renderInProfile")}>
+        Show in User Profile
+      </SwitchItem>
+
+      <SwitchItem
         note="Toggle rendering in the Member List"
         {...util.useSetting(cfg, "renderInMemberList")}>
         Show in Member List
