@@ -1,12 +1,26 @@
-import { Logger, util } from "replugged";
+import { Injector, Logger, settings, util } from "replugged";
 import { PlatformIndicatorsSettings } from "./interfaces";
-import { cfg, inject } from ".";
 
+export const inject = new Injector();
+export const cfg = await settings.init<
+  PlatformIndicatorsSettings,
+  keyof typeof PlatformIndicatorsSettings
+>("me.puyodead1.PlatformIndicators");
+
+export const STATUS_COLOR_REGEX = /case\s\w+\.\w+\.ONLINE:.+case\s\w+\.\w+\.IDLE:/;
 export const logger = Logger.plugin("PlatformIndicators");
 
 export const debugLog = (debug: boolean, msg: string, ...args: unknown[]): void => {
   if (debug) logger.log(`[DEBUG] ${msg}`, ...args);
   else logger.log(msg, ...args);
+};
+export const moduleFindFailed = (name: string): boolean => {
+  logger.error(`Module ${name} not found!`);
+  return false;
+};
+export const functionNameFindFailed = (mod: string): boolean => {
+  logger.error(`Failed to find ${mod} function name!`);
+  return false;
 };
 
 export function resetSettings(): void {

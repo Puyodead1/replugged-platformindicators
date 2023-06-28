@@ -1,6 +1,6 @@
 import { User } from "discord-types/general";
 import Replugged, { common } from "replugged";
-import { Platforms, PresenceStore, SessionStore } from "../interfaces";
+import { Platforms, PresenceStore, SessionStore, useStateFromStore } from "../interfaces";
 import { logger } from "../utils";
 import iconMaker from "./Icon";
 const { React } = common;
@@ -8,7 +8,7 @@ const { React } = common;
 let currentUser: User | null = null;
 
 interface Props {
-  useStateFromStore: (store: any[], cb: () => unknown, data: any[]) => PresenceStore;
+  useStateFromStore: useStateFromStore;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   getStatusColor: (status: string) => string;
@@ -36,7 +36,7 @@ const Icons = {
   ),
 };
 
-function TheRealPlatformIndicator(props: PropsWithUser) {
+function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | null {
   const {
     user,
     currentUser,
