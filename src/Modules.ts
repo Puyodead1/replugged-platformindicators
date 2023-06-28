@@ -146,7 +146,7 @@ export const modules: {
     try {
       debugLog(debug, "Waiting for member list module");
       modules.memberListModule = await webpack.waitForModule<MemberListModule>(
-        webpack.filters.bySource("({canRenderAvatarDecorations:"),
+        webpack.filters.bySource("this.renderBot()"),
         {
           timeout: 10000,
         },
