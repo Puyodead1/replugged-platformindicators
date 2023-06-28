@@ -5,7 +5,7 @@ const { React } = common;
 
 const ManifestJSON = require("../../manifest.json");
 
-export function Settings() {
+export function Settings(): JSX.Element {
   const [canReset, setCanReset] = React.useState(true);
 
   return (

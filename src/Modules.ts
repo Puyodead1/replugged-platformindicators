@@ -107,7 +107,7 @@ export const modules: {
     modules.useStateFromStore = useStateFromStoreMod[usfsFnName] as useStateFromStore;
     debugLog(debug, "Found useStateFromStore module");
 
-    debugLog(debug, "Waiting for message header module");
+    debugLog(debug, "Waiting for Message Header module");
     modules.messageHeaderModule = await webpack.waitForModule<{
       [key: string]: AnyFunction;
     }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/), {
@@ -121,13 +121,13 @@ export const modules: {
 
     if (!messageHeaderFnName) return functionNameFindFailed("messageHeaderModule");
     modules.messageHeaderFnName = messageHeaderFnName;
-    debugLog(debug, "Found message header module");
+    debugLog(debug, "Found Message Header module");
 
     debugLog(debug, "Waiting for user badge classes");
     modules.userBadgeClasses = await webpack.waitForProps<Record<string, string>>(
       "containerWithContent",
     );
-    debugLog(debug, "Found user badge classes");
+    debugLog(debug, "Found User Badge classes");
 
     debugLog(debug, "Waiting for user badge module");
     modules.userBadgeModule = await webpack.waitForModule<{
@@ -144,14 +144,14 @@ export const modules: {
     debugLog(debug, "Found UserBadge module");
 
     try {
-      debugLog(debug, "Waiting for member list module");
+      debugLog(debug, "Waiting for Member List module");
       modules.memberListModule = await webpack.waitForModule<MemberListModule>(
         webpack.filters.bySource("this.renderBot()"),
         {
           timeout: 10000,
         },
       );
-      debugLog(debug, "Found member list module");
+      debugLog(debug, "Found Member List module");
 
       const memberListMemo = Object.entries(modules.memberListModule).find(([_, v]) => v.type)?.[1];
       modules.memberListMemo = memberListMemo ?? null;
@@ -159,7 +159,7 @@ export const modules: {
       logger.error(e);
     }
 
-    debugLog(debug, "Waiting for DM list module");
+    debugLog(debug, "Waiting for DM List module");
     modules.dmListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
       webpack.filters.bySource(".interactiveSystemDM"),
       {
@@ -173,7 +173,7 @@ export const modules: {
     )?.[0];
     if (!dmListFnName) return functionNameFindFailed("dmListModule");
     modules.dmListFnName = dmListFnName;
-    debugLog(debug, "Found DM list module");
+    debugLog(debug, "Found DM List module");
 
     return true;
   },
