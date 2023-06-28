@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import { RawModule } from "replugged/dist/types";
+import { AnyFunction, RawModule } from "replugged/dist/types";
 
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   {
@@ -61,4 +61,15 @@ export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   renderInMemberList: true,
   renderInDirectMessageList: true,
   resetSettings: false,
+};
+
+export type useStateFromStore = (store: any[], cb: () => unknown, data: any[]) => PresenceStore;
+export type MemberListModule = {
+  [key: string]: MemberListItem;
+};
+
+export type MemberListItem = {
+  $$typeof: symbol;
+  compare: null;
+  type: AnyFunction;
 };

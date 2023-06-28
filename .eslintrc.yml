@@ -36,7 +36,9 @@ rules:
   "@typescript-eslint/no-unused-vars": error
 
 overrides:
-  - files: "**/*.ts"
+  - files:
+      - "**/*.ts"
+      - "**/*.tsx"
     extends: eslint-config-dmitmel/presets/typescript-addon
     rules:
       node/no-missing-import: off
@@ -45,6 +47,7 @@ overrides:
       no-return-assign: off
       no-void: off
       consistent-return: off
+      "@typescript-eslint/no-explicit-any": off
 
   - files: "**/src/**/*.ts"
     extends: eslint-config-dmitmel/rules/typescript/with-type-checking

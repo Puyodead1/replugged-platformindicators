@@ -1,12 +1,11 @@
 import { common, components, util } from "replugged";
-import { cfg } from "..";
-import { resetSettings } from "../utils";
+import { cfg, resetSettings } from "../utils";
 const { SwitchItem, Button, Text } = components;
 const { React } = common;
 
 const ManifestJSON = require("../../manifest.json");
 
-export function Settings() {
+export function Settings(): JSX.Element {
   const [canReset, setCanReset] = React.useState(true);
 
   return (
