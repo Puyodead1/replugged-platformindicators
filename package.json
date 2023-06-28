@@ -1,7 +1,7 @@
 {
   "name": "replugged-platformindicators",
-  "version": "1.2.26",
-  "description": "Adds platform indicators to users",
+  "version": "1.3.0",
+  "description": "Adds Platform Indicators for to for users to various places.",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
