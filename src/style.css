@@ -4,7 +4,7 @@
   position: relative;
   margin-left: 0.25rem;
   vertical-align: bottom;
-  top: 1px;
+  /* top: 1px; */
 }
 .platform-indicator-badge-container {
   min-height: -webkit-fit-content;
