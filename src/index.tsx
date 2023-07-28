@@ -46,9 +46,7 @@ export async function start(): Promise<void> {
   patchProfile(PlatformIndicator);
   patchMemberList(PlatformIndicator);
   patchDMList(PlatformIndicator);
-
-  await util.waitFor("[class^=layout-]");
-  forceRerenderElement("[class^=privateChannels-]");
+  rerenderRequired();
 }
 
 function patchMessageHeader(
@@ -64,7 +62,7 @@ function patchMessageHeader(
   inject.before(modules.messageHeaderModule, modules.messageHeaderFnName, (args, _) => {
     if (!cfg.get("renderInChat")) return args;
     const user = args[0].message.author as User;
-    if (args[0].decorations && args[0].decorations["1"] && args[0].message && user) {
+    if (args[0].decorations?.["1"] && args[0].message && user) {
       const a = (
         <ErrorBoundary>
           <PlatformIndicator user={user} />
@@ -124,7 +122,7 @@ function patchMemberList(
       inject.after(
         res.type.prototype,
         "renderDecorators",
-        (args, res, instance: { props?: { user: User } }) => {
+        (_args, res, instance: { props?: { user: User } }) => {
           if (!cfg.get("renderInMemberList")) return res;
 
           const user = instance?.props?.user;
@@ -198,6 +196,11 @@ function patchDMList(PlatformIndicator: ({ user }: { user: User }) => JSX.Elemen
       unpatchConstructor();
     },
   );
+}
+
+function rerenderRequired(): void {
+  void util.waitFor("[class^=layout-]").then(() => forceRerenderElement("[class^=privateChannels-]"));
+  void util.waitFor("li [class*=message-] h3").then(() => forceRerenderElement("[class^=chat-]"));  
 }
 
 export function stop(): void {
