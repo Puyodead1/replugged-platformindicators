@@ -199,8 +199,10 @@ function patchDMList(PlatformIndicator: ({ user }: { user: User }) => JSX.Elemen
 }
 
 function rerenderRequired(): void {
-  void util.waitFor("[class^=layout-]").then(() => forceRerenderElement("[class^=privateChannels-]"));
-  void util.waitFor("li [class*=message-] h3").then(() => forceRerenderElement("[class^=chat-]"));  
+  void util
+    .waitFor("[class^=layout-]")
+    .then(() => forceRerenderElement("[class^=privateChannels-]"));
+  void util.waitFor("li [class*=message-] h3").then(() => forceRerenderElement("[class^=chat-]"));
 }
 
 export function stop(): void {
