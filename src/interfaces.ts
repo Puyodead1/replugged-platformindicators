@@ -64,12 +64,3 @@ export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
 };
 
 export type useStateFromStore = (store: any[], cb: () => unknown, data: any[]) => PresenceStore;
-export type MemberListModule = {
-  [key: string]: MemberListItem;
-};
-
-export type MemberListItem = {
-  $$typeof: symbol;
-  compare: null;
-  type: AnyFunction;
-};
