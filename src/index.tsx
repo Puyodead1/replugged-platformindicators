@@ -110,35 +110,26 @@ function patchProfile(PlatformIndicator: ({ user }: { user: User }) => JSX.Eleme
 function patchMemberList(
   PlatformIndicator: ({ user }: { user: User }) => JSX.Element | null,
 ): void {
-  if (!modules.memberListMemo) {
+  if (!modules.memberListModule) {
     toast.toast("Unable to patch Member List!", toast.Kind.FAILURE, { duration: 5000 });
     return;
   }
 
-  const unpatchMemo = inject.after(
-    modules.memberListMemo,
-    "type",
-    (_args, res: { type: AnyFunction }, _) => {
-      inject.after(
-        res.type.prototype,
-        "renderDecorators",
-        (_args, res, instance: { props?: { user: User } }) => {
-          if (!cfg.get("renderInMemberList")) return res;
+  inject.after(
+    modules.memberListModule!,
+    modules.memberListFnName!,
+    ([{ user }]: [{ user: User }], res: React.ReactElement, _) => {
+      if (!cfg.get("renderInMemberList")) return res;
 
-          const user = instance?.props?.user;
-          if (Array.isArray(res?.props?.children) && user) {
-            const a = (
-              <ErrorBoundary>
-                <PlatformIndicator user={user} />
-              </ErrorBoundary>
-            );
-            res.props.children.push(a);
-          }
-          return res;
-        },
-      );
-
-      unpatchMemo();
+      if (Array.isArray(res?.props?.decorators?.props?.children) && user) {
+        const a = (
+          <ErrorBoundary>
+            <PlatformIndicator user={user} />
+          </ErrorBoundary>
+        );
+        res?.props?.decorators?.props?.children.push(a);
+      }
+      return res;
     },
   );
 }
@@ -148,52 +139,50 @@ function patchDMList(PlatformIndicator: ({ user }: { user: User }) => JSX.Elemen
     toast.toast("Unable to patch DM List!", toast.Kind.FAILURE, { duration: 5000 });
     return;
   }
-
-  const unpatchConstructor = inject.after(
+  inject.after(
     modules.dmListModule,
     modules.dmListFnName,
     (_args, res: { type: AnyFunction }, _) => {
-      inject.after(
-        res.type.prototype,
-        "render",
-        (
-          _args,
-          res: { props: { children: AnyFunction } },
-          instance: { props?: { user: User } },
-        ) => {
-          const user = instance?.props?.user;
-          if (!cfg.get("renderInDirectMessageList") || !user) return res;
-          inject.after(res.props, "children", (_args, res: ReactElement, _) => {
-            const { findInReactTree } = util as unknown as {
-              findInReactTree: (
-                tree: ReactElement,
-                filter: AnyFunction,
-                maxRecursions?: number,
-              ) => ReactElement;
-            };
-            const container = findInReactTree(
-              res,
-              (c) => c?.props?.avatar && c?.props?.name && c?.props?.subText,
-            );
-            if (!container) return res;
-            const a = (
-              <ErrorBoundary>
-                <PlatformIndicator user={user} />
-              </ErrorBoundary>
-            );
-            if (Array.isArray(container.props.decorators)) {
-              container?.props?.decorators.push(a);
-            } else if (container.props.decorators === null) {
-              container.props.decorators = [a];
-            } else {
-              container.props.decorators = [...Array.from(container.props.decorators), a];
-            }
+      if (!modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType) {
+        inject.after(
+          res,
+          "type",
+          ([{ user }]: [{ user: User }], res: { props: { children: AnyFunction } }) => {
+            if (!cfg.get("renderInDirectMessageList") || !user) return res;
+            inject.after(res.props, "children", (_args, res: ReactElement, _) => {
+              const { findInReactTree } = util as unknown as {
+                findInReactTree: (
+                  tree: ReactElement,
+                  filter: AnyFunction,
+                  maxRecursions?: number,
+                ) => ReactElement;
+              };
+              const container = findInReactTree(
+                res,
+                (c) => c?.props?.avatar && c?.props?.name && c?.props?.subText,
+              );
+              if (!container) return res;
+              const a = (
+                <ErrorBoundary>
+                  <PlatformIndicator user={user} />
+                </ErrorBoundary>
+              );
+              if (Array.isArray(container.props.decorators)) {
+                container?.props?.decorators.push(a);
+              } else if (container.props.decorators === null) {
+                container.props.decorators = [a];
+              } else {
+                container.props.decorators = [...Array.from(container.props.decorators), a];
+              }
+              return res;
+            });
             return res;
-          });
-          return res;
-        },
-      );
-      unpatchConstructor();
+          },
+        );
+        modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType = res.type;
+      }
+      res.type =
+        modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType ?? res.type;
     },
   );
 }
@@ -207,6 +196,7 @@ function rerenderRequired(): void {
 
 export function stop(): void {
   inject.uninjectAll();
+  delete modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType;
   fluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Unsubscribed from Presence updates");
 }

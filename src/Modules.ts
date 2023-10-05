@@ -1,12 +1,6 @@
 import { webpack } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
-import {
-  MemberListItem,
-  MemberListModule,
-  PresenceStore,
-  SessionStore,
-  useStateFromStore,
-} from "./interfaces";
+import { PresenceStore, SessionStore, useStateFromStore } from "./interfaces";
 import {
   STATUS_COLOR_REGEX,
   debugLog,
@@ -26,8 +20,8 @@ export const modules: {
   userBadgeClasses: Record<string, string> | null;
   userBadgeModule: Record<string, AnyFunction> | null;
   userBadgeFnName: string | null;
-  memberListModule: MemberListModule | null;
-  memberListMemo: MemberListItem | null;
+  memberListModule: Record<string, AnyFunction> | null;
+  memberListFnName: string | null;
   dmListModule: Record<string, AnyFunction> | null;
   dmListFnName: string | null;
   init: (debug: boolean) => Promise<boolean>;
@@ -43,7 +37,7 @@ export const modules: {
   userBadgeModule: null,
   userBadgeFnName: null,
   memberListModule: null,
-  memberListMemo: null,
+  memberListFnName: null,
   dmListModule: null,
   dmListFnName: null,
   init: async (debug) => {
@@ -145,16 +139,19 @@ export const modules: {
 
     try {
       debugLog(debug, "Waiting for Member List module");
-      modules.memberListModule = await webpack.waitForModule<MemberListModule>(
-        webpack.filters.bySource("this.renderBot()"),
+      modules.memberListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
+        webpack.filters.bySource("().memberInner"),
         {
           timeout: 10000,
         },
       );
       debugLog(debug, "Found Member List module");
 
-      const memberListMemo = Object.entries(modules.memberListModule).find(([_, v]) => v.type)?.[1];
-      modules.memberListMemo = memberListMemo ?? null;
+      const memberListFnName = Object.entries(modules.memberListModule!).find(([_, v]) =>
+        v.toString()?.includes(".isTyping"),
+      )?.[0];
+      if (!memberListFnName) return functionNameFindFailed("memberListModule");
+      modules.memberListFnName = memberListFnName;
     } catch (e) {
       logger.error(e);
     }
