@@ -53,8 +53,10 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
     () => PresenceStore.getState().clientStatuses[user.id],
     [user.id],
   );
-
   React.useEffect(() => {
+    if (!statuses) {
+      PresenceStore.getStatus(user.id);
+    }
     const icons = Object.entries(statuses ?? {}).map(([platform, status]) => {
       const tooltip = `${platform[0].toUpperCase() + platform.slice(1)} - ${
         status[0].toUpperCase() + status.slice(1)
@@ -64,7 +66,7 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
       return <Icon color={`var(--${color}`} tooltip={tooltip} className={profileBadge24} />;
     });
     setIcons(icons);
-  }, [statuses]);
+  }, [JSON.stringify(statuses)]);
 
   if (user.id === currentUser.id) {
     const sessions = SessionStore.getSessions();
