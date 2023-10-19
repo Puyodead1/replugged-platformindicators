@@ -7,7 +7,7 @@ export const cfg = await settings.init<
   keyof typeof PlatformIndicatorsSettings
 >("me.puyodead1.PlatformIndicators");
 
-export const STATUS_COLOR_REGEX = /case\s\w+\.\w+\.ONLINE:.+case\s\w+\.\w+\.IDLE:/;
+export const STATUS_COLOR_REGEX = /return\s\w\.\w+\.GREEN_360;/;
 export const logger = Logger.plugin("PlatformIndicators");
 
 export const debugLog = (debug: boolean, msg: string, ...args: unknown[]): void => {

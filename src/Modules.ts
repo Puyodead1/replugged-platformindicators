@@ -147,7 +147,7 @@ export const modules: {
       );
       debugLog(debug, "Found Member List module");
 
-      const memberListFnName = Object.entries(modules.memberListModule!).find(([_, v]) =>
+      const memberListFnName = Object.entries(modules.memberListModule).find(([_, v]) =>
         v.toString()?.includes(".isTyping"),
       )?.[0];
       if (!memberListFnName) return functionNameFindFailed("memberListModule");
