@@ -1,13 +1,7 @@
 import { webpack } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
 import { PresenceStore, SessionStore, useStateFromStore } from "./interfaces";
-import {
-  STATUS_COLOR_REGEX,
-  debugLog,
-  functionNameFindFailed,
-  logger,
-  moduleFindFailed,
-} from "./utils";
+import { debugLog, functionNameFindFailed, logger, moduleFindFailed } from "./utils";
 
 export const modules: {
   SessionStore: SessionStore | null;
@@ -19,7 +13,6 @@ export const modules: {
   useStateFromStore: useStateFromStore | null;
   userBadgeClasses: Record<string, string> | null;
   userBadgeModule: Record<string, AnyFunction> | null;
-  userBadgeFnName: string | null;
   memberListModule: Record<string, AnyFunction> | null;
   memberListFnName: string | null;
   dmListModule: Record<string, AnyFunction> | null;
@@ -35,7 +28,6 @@ export const modules: {
   useStateFromStore: null,
   userBadgeClasses: null,
   userBadgeModule: null,
-  userBadgeFnName: null,
   memberListModule: null,
   memberListFnName: null,
   dmListModule: null,
@@ -49,6 +41,7 @@ export const modules: {
       },
     );
     if (!modules.SessionStore) return moduleFindFailed("SessionStore");
+    debugLog(debug, "Found SessionStore module");
 
     debugLog(debug, "Waiting for PresenceStore module");
     modules.PresenceStore = await webpack.waitForModule<PresenceStore>(
@@ -58,64 +51,63 @@ export const modules: {
       },
     );
     if (!modules.PresenceStore) return moduleFindFailed("PresenceStore");
+    debugLog(debug, "Found PresenceStore module");
 
-    debugLog(debug, "Waiting for color constants module");
-    const getStatusColorMod = await webpack.waitForModule<Record<string, string>>(
-      webpack.filters.bySource(STATUS_COLOR_REGEX),
+    debugLog(debug, "Waiting for getStatusColor function");
+    const getStatusColorMod = await webpack.waitForModule<Record<string, AnyFunction> | undefined>(
+      webpack.filters.byProps("getStatusColor"),
       {
         timeout: 10000,
       },
     );
     if (!getStatusColorMod) return moduleFindFailed("getStatusColorMod");
-    const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
-      getStatusColorMod,
-      STATUS_COLOR_REGEX,
-    );
-    if (!getStatusColor) return moduleFindFailed("getStatusColor");
-    modules.getStatusColor = getStatusColor;
+    // const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
+    //   getStatusColorMod,
+    //   STATUS_COLOR_REGEX,
+    // );
+    // if (!getStatusColor) return moduleFindFailed("getStatusColor");
+    modules.getStatusColor = getStatusColorMod.getStatusColor as (status: string) => string;
+    debugLog(debug, "Found getStatusColor function");
 
     debugLog(debug, "Waiting for profile badge classes module");
-    modules.profileBadgeMod = await webpack.waitForModule<Record<string, string>>(
+    const profileBadgeMod = await webpack.waitForModule<Record<string, string> | undefined>(
       webpack.filters.byProps("profileBadge24"),
       {
         timeout: 10000,
       },
     );
-    if (!modules.profileBadgeMod) return moduleFindFailed("profileBadgeMod");
+    if (!profileBadgeMod) return moduleFindFailed("profileBadgeMod");
+    modules.profileBadgeMod = profileBadgeMod;
+    debugLog(debug, "Found profile badge classes module");
 
     debugLog(debug, "Waiting for userStateFromStore module");
-    // const useStateFromStoreMod = await webpack.waitForModule<ObjectExports>(
-    //   webpack.filters.bySource("useStateFromStores"),
-    //   {
-    //     timeout: 10000,
-    //   },
-    // );
-    // if (!useStateFromStoreMod) return moduleFindFailed("useStateFromStoreMod");
-    const useStateFromStoreMod = webpack
-      .getBySource("useStateFromStores", { all: true })
-      .find((x) => webpack.getFunctionKeyBySource(x, "useStateFromStores"));
+    const useStateFromStoreMod = await webpack.waitForModule<
+      Record<string, AnyFunction> | undefined
+    >(webpack.filters.byProps("useStateFromStores"), {
+      timeout: 10000,
+    });
     if (!useStateFromStoreMod) return moduleFindFailed("useStateFromStoreMod");
 
-    const usfsFnName = webpack.getFunctionKeyBySource(useStateFromStoreMod, "useStateFromStores")!;
-    if (!usfsFnName) return functionNameFindFailed("useStateFromStoreMod");
-    modules.useStateFromStore = useStateFromStoreMod[usfsFnName] as useStateFromStore;
+    modules.useStateFromStore = useStateFromStoreMod.useStateFromStores as useStateFromStore;
     debugLog(debug, "Found useStateFromStore module");
 
     debugLog(debug, "Waiting for Message Header module");
     modules.messageHeaderModule = await webpack.waitForModule<{
       [key: string]: AnyFunction;
-    }>(webpack.filters.bySource(/\w+.withMentionPrefix,\w+=void\s0!==\w/), {
+    }>(webpack.filters.byProps("UsernameDecorationTypes"), {
       timeout: 10000,
     });
     if (!modules.messageHeaderModule) return moduleFindFailed("messageHeaderModule");
+    debugLog(debug, "Found Message Header module");
 
-    const messageHeaderFnName = Object.entries(modules.messageHeaderModule).find(([_, v]) =>
-      v.toString()?.match(/.withMentionPrefix/),
-    )?.[0];
+    const messageHeaderFnName = webpack.getFunctionKeyBySource(
+      modules.messageHeaderModule,
+      /withMentionPrefix/,
+    );
 
     if (!messageHeaderFnName) return functionNameFindFailed("messageHeaderModule");
     modules.messageHeaderFnName = messageHeaderFnName;
-    debugLog(debug, "Found Message Header module");
+    debugLog(debug, "Found Message Header function name");
 
     debugLog(debug, "Waiting for user badge classes");
     modules.userBadgeClasses = await webpack.waitForProps<Record<string, string>>(
@@ -126,51 +118,46 @@ export const modules: {
     debugLog(debug, "Waiting for user badge module");
     modules.userBadgeModule = await webpack.waitForModule<{
       [key: string]: AnyFunction;
-    }>(webpack.filters.bySource("getBadges()"), {
+    }>(webpack.filters.byProps("BadgeSizes"), {
       timeout: 10000,
     });
-
-    const userBadgeFnName = Object.entries(modules.userBadgeModule).find(
-      ([_, v]) => typeof v === "function",
-    )?.[0];
-    if (!userBadgeFnName) return functionNameFindFailed("userBadgeMod");
-    modules.userBadgeFnName = userBadgeFnName;
     debugLog(debug, "Found UserBadge module");
 
     try {
       debugLog(debug, "Waiting for Member List module");
       modules.memberListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
-        webpack.filters.bySource("().memberInner"),
+        webpack.filters.byProps("AVATAR_DECORATION_PADDING"),
         {
           timeout: 10000,
         },
       );
       debugLog(debug, "Found Member List module");
 
-      const memberListFnName = Object.entries(modules.memberListModule).find(([_, v]) =>
-        v.toString()?.includes(".isTyping"),
-      )?.[0];
+      const memberListFnName = webpack.getFunctionKeyBySource(modules.memberListModule, /isTyping/);
       if (!memberListFnName) return functionNameFindFailed("memberListModule");
       modules.memberListFnName = memberListFnName;
+      debugLog(debug, "Found Member List function name");
     } catch (e) {
       logger.error(e);
     }
 
     debugLog(debug, "Waiting for DM List module");
     modules.dmListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
-      webpack.filters.bySource(".interactiveSystemDM"),
+      webpack.filters.byProps("LinkButton"),
       {
         timeout: 10000,
       },
     );
     if (!modules.dmListModule) return moduleFindFailed("dmListModule");
+    debugLog(debug, "Found DM List module");
 
-    const dmListFnName = Object.entries(modules.dmListModule).find(([_, v]) =>
-      v.toString()?.includes(".getAnyStreamForUser("),
-    )?.[0];
+    const dmListFnName = webpack.getFunctionKeyBySource(
+      modules.dmListModule,
+      /getAnyStreamForUser/,
+    );
     if (!dmListFnName) return functionNameFindFailed("dmListModule");
     modules.dmListFnName = dmListFnName;
-    debugLog(debug, "Found DM List module");
+    debugLog(debug, "Found DM List function name");
 
     return true;
   },

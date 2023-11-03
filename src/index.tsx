@@ -63,11 +63,9 @@ function patchMessageHeader(
     if (!cfg.get("renderInChat")) return args;
     const user = args[0].message.author as User;
     if (args[0].decorations?.["1"] && args[0].message && user) {
-      const a = (
-        <ErrorBoundary>
-          <PlatformIndicator user={user} />
-        </ErrorBoundary>
-      );
+      const icon = <PlatformIndicator user={user} />;
+      if (icon === null) return args; // to prevent adding an empty div
+      const a = <ErrorBoundary>{icon}</ErrorBoundary>;
       args[0].decorations[1].push(a);
     }
     return args;
@@ -75,24 +73,22 @@ function patchMessageHeader(
 }
 
 function patchProfile(PlatformIndicator: ({ user }: { user: User }) => JSX.Element | null): void {
-  if (!modules.userBadgeModule || !modules.userBadgeFnName) {
+  if (!modules.userBadgeModule) {
     toast.toast("Unable to patch User Profile Badges!", toast.Kind.FAILURE, {
       duration: 5000,
     });
     return;
   }
 
-  inject.after(modules.userBadgeModule, modules.userBadgeFnName, ([args], res: ReactElement, _) => {
+  inject.after(modules.userBadgeModule, "default", ([args], res: ReactElement, _) => {
     if (!cfg.get("renderInProfile")) return res;
     const user = args.user as User;
 
     const theChildren = res?.props?.children;
     if (!theChildren || !user) return res;
-    const a = (
-      <ErrorBoundary>
-        <PlatformIndicator user={user} />
-      </ErrorBoundary>
-    );
+    const icon = <PlatformIndicator user={user} />;
+    if (icon === null) return res; // to prevent adding an empty div
+    const a = <ErrorBoundary>{icon}</ErrorBoundary>;
     res.props.children = [a, ...theChildren];
 
     if (theChildren.length > 0) {
@@ -122,11 +118,9 @@ function patchMemberList(
       if (!cfg.get("renderInMemberList")) return res;
 
       if (Array.isArray(res?.props?.decorators?.props?.children) && user) {
-        const a = (
-          <ErrorBoundary>
-            <PlatformIndicator user={user} />
-          </ErrorBoundary>
-        );
+        const icon = <PlatformIndicator user={user} />;
+        if (icon === null) return res; // to prevent adding an empty div
+        const a = <ErrorBoundary>{icon}</ErrorBoundary>;
         res?.props?.decorators?.props?.children.push(a);
       }
       return res;

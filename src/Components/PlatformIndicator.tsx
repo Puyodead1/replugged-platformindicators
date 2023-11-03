@@ -92,6 +92,7 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
     clientStatuses[currentUser.id as Platforms] = ownStatus as string;
   }
 
+  if (!icons.length) return null;
   return <div className="platform-indicators">{icons}</div>;
 }
 
