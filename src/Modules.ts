@@ -111,9 +111,8 @@ export const modules: {
     debugLog(debug, "Found Message Header function name");
 
     debugLog(debug, "Waiting for user badge classes");
-    modules.userBadgeClasses = await webpack.waitForProps<Record<string, string>>(
-      "containerWithContent",
-    );
+    modules.userBadgeClasses =
+      await webpack.waitForProps<Record<string, string>>("containerWithContent");
     debugLog(debug, "Found User Badge classes");
 
     debugLog(debug, "Waiting for user badge module");
