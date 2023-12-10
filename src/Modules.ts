@@ -8,7 +8,7 @@ export const modules: {
   PresenceStore: PresenceStore | null;
   messageHeaderModule: Record<string, AnyFunction> | null;
   messageHeaderFnName: string | null;
-  getStatusColor: ((status: string) => string) | null;
+  useStatusFillColor: ((status: string, desature?: boolean) => string) | null;
   profileBadgeMod: Record<string, string> | null;
   useStateFromStore: useStateFromStore | null;
   userBadgeClasses: Record<string, string> | null;
@@ -23,7 +23,7 @@ export const modules: {
   PresenceStore: null,
   messageHeaderModule: null,
   messageHeaderFnName: null,
-  getStatusColor: null,
+  useStatusFillColor: null,
   profileBadgeMod: null,
   useStateFromStore: null,
   userBadgeClasses: null,
@@ -53,22 +53,23 @@ export const modules: {
     if (!modules.PresenceStore) return moduleFindFailed("PresenceStore");
     debugLog(debug, "Found PresenceStore module");
 
-    debugLog(debug, "Waiting for getStatusColor function");
-    const getStatusColorMod = await webpack.waitForModule<Record<string, AnyFunction> | undefined>(
-      webpack.filters.byProps("getStatusColor"),
-      {
-        timeout: 10000,
-      },
-    );
-    if (!getStatusColorMod) return moduleFindFailed("getStatusColorMod");
-    // const getStatusColor = webpack.getFunctionBySource<(status: string) => string>(
-    //   getStatusColorMod,
+    debugLog(debug, "Waiting for useStatusFillColor function");
+    const useStatusFillColorMod = await webpack.waitForModule<
+      Record<string, AnyFunction> | undefined
+    >(webpack.filters.byProps("useStatusFillColor"), {
+      timeout: 10000,
+    });
+    if (!useStatusFillColorMod) return moduleFindFailed("useStatusFillColorMod");
+    // const useStatusFillColor = webpack.getFunctionBySource<(status: string) => string>(
+    //   useStatusFillColorMod,
     //   STATUS_COLOR_REGEX,
     // );
-    // if (!getStatusColor) return moduleFindFailed("getStatusColor");
-    modules.getStatusColor = getStatusColorMod.getStatusColor as (status: string) => string;
-    debugLog(debug, "Found getStatusColor function");
-
+    // if (!useStatusFillColor) return moduleFindFailed("useStatusFillColor");
+    modules.useStatusFillColor = useStatusFillColorMod.useStatusFillColor as (
+      status: string,
+      desature?: boolean,
+    ) => string;
+    debugLog(debug, "Found useStatusFillColor function");
     debugLog(debug, "Waiting for profile badge classes module");
     const profileBadgeMod = await webpack.waitForModule<Record<string, string> | undefined>(
       webpack.filters.byProps("profileBadge24"),

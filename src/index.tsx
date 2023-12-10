@@ -2,9 +2,16 @@ import { User } from "discord-types/general";
 import { ReactElement } from "react";
 import { common, components, util } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
-import platformIndicator from "./Components/PlatformIndicator";
+import PlatformIndicatorComponent from "./Components/PlatformIndicator";
 import { modules } from "./Modules";
-import { ClientStatus, PlatformIndicatorsSettings } from "./interfaces";
+import {
+  ClientStatus,
+  PlatformIndicatorsSettings,
+  Platforms,
+  PresenceStore,
+  SessionStore,
+  useStateFromStore,
+} from "./interfaces";
 import "./style.css";
 import { addNewSettings, cfg, forceRerenderElement, inject, logger, resetSettings } from "./utils";
 
@@ -33,25 +40,27 @@ export async function start(): Promise<void> {
 
   const res = await modules.init(debug);
   if (!res) return;
-
-  const PlatformIndicator = platformIndicator({
+  const PlatformIndicatorProps = {
     useStateFromStore: modules.useStateFromStore!,
     SessionStore: modules.SessionStore!,
     PresenceStore: modules.PresenceStore!,
-    getStatusColor: modules.getStatusColor!,
+    useStatusFillColor: modules.useStatusFillColor!,
     profileBadge24: modules.profileBadgeMod!.profileBadge24,
-  });
-
-  patchMessageHeader(PlatformIndicator);
-  patchProfile(PlatformIndicator);
-  patchMemberList(PlatformIndicator);
-  patchDMList(PlatformIndicator);
+  };
+  patchMessageHeader(PlatformIndicatorProps);
+  patchProfile(PlatformIndicatorProps);
+  patchMemberList(PlatformIndicatorProps);
+  patchDMList(PlatformIndicatorProps);
   rerenderRequired();
 }
 
-function patchMessageHeader(
-  PlatformIndicator: ({ user }: { user: User }) => JSX.Element | null,
-): void {
+function patchMessageHeader(PlatformIndicatorProps: {
+  useStateFromStore: useStateFromStore;
+  SessionStore: SessionStore;
+  PresenceStore: PresenceStore;
+  useStatusFillColor: (status: string, desaturate?: boolean) => string;
+  profileBadge24: string;
+}): void {
   if (!modules.messageHeaderModule || !modules.messageHeaderFnName) {
     toast.toast("Unable to patch Message Header!", toast.Kind.FAILURE, {
       duration: 5000,
@@ -63,7 +72,7 @@ function patchMessageHeader(
     if (!cfg.get("renderInChat")) return args;
     const user = args[0].message.author as User;
     if (args[0].decorations?.["1"] && args[0].message && user) {
-      const icon = <PlatformIndicator user={user} />;
+      const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
       if (icon === null) return args; // to prevent adding an empty div
       const a = <ErrorBoundary>{icon}</ErrorBoundary>;
       args[0].decorations[1].push(a);
@@ -72,7 +81,13 @@ function patchMessageHeader(
   });
 }
 
-function patchProfile(PlatformIndicator: ({ user }: { user: User }) => JSX.Element | null): void {
+function patchProfile(PlatformIndicatorProps: {
+  useStateFromStore: useStateFromStore;
+  SessionStore: SessionStore;
+  PresenceStore: PresenceStore;
+  useStatusFillColor: (status: string, desaturate?: boolean) => string;
+  profileBadge24: string;
+}): void {
   if (!modules.userBadgeModule) {
     toast.toast("Unable to patch User Profile Badges!", toast.Kind.FAILURE, {
       duration: 5000,
@@ -86,7 +101,7 @@ function patchProfile(PlatformIndicator: ({ user }: { user: User }) => JSX.Eleme
 
     const theChildren = res?.props?.children;
     if (!theChildren || !user) return res;
-    const icon = <PlatformIndicator user={user} />;
+    const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
     if (icon === null) return res; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
     res.props.children = [a, ...theChildren];
@@ -103,9 +118,13 @@ function patchProfile(PlatformIndicator: ({ user }: { user: User }) => JSX.Eleme
   });
 }
 
-function patchMemberList(
-  PlatformIndicator: ({ user }: { user: User }) => JSX.Element | null,
-): void {
+function patchMemberList(PlatformIndicatorProps: {
+  useStateFromStore: useStateFromStore;
+  SessionStore: SessionStore;
+  PresenceStore: PresenceStore;
+  useStatusFillColor: (status: string, desaturate?: boolean) => string;
+  profileBadge24: string;
+}): void {
   if (!modules.memberListModule) {
     toast.toast("Unable to patch Member List!", toast.Kind.FAILURE, { duration: 5000 });
     return;
@@ -118,7 +137,7 @@ function patchMemberList(
       if (!cfg.get("renderInMemberList")) return res;
 
       if (Array.isArray(res?.props?.decorators?.props?.children) && user) {
-        const icon = <PlatformIndicator user={user} />;
+        const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
         if (icon === null) return res; // to prevent adding an empty div
         const a = <ErrorBoundary>{icon}</ErrorBoundary>;
         res?.props?.decorators?.props?.children.push(a);
@@ -128,7 +147,13 @@ function patchMemberList(
   );
 }
 
-function patchDMList(PlatformIndicator: ({ user }: { user: User }) => JSX.Element | null): void {
+function patchDMList(PlatformIndicatorProps: {
+  useStateFromStore: useStateFromStore;
+  SessionStore: SessionStore;
+  PresenceStore: PresenceStore;
+  useStatusFillColor: (status: string, desaturate?: boolean) => string;
+  profileBadge24: string;
+}): void {
   if (!modules.dmListModule || !modules.dmListFnName) {
     toast.toast("Unable to patch DM List!", toast.Kind.FAILURE, { duration: 5000 });
     return;
@@ -158,7 +183,7 @@ function patchDMList(PlatformIndicator: ({ user }: { user: User }) => JSX.Elemen
               if (!container) return res;
               const a = (
                 <ErrorBoundary>
-                  <PlatformIndicator user={user} />
+                  <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />
                 </ErrorBoundary>
               );
               if (Array.isArray(container.props.decorators)) {

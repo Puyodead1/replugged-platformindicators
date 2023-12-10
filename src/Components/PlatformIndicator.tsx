@@ -11,12 +11,12 @@ interface Props {
   useStateFromStore: useStateFromStore;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
-  getStatusColor: (status: string) => string;
+  useStatusFillColor: (status: string, desaturate?: boolean) => string;
   profileBadge24: string;
+  user: User;
 }
 
 interface PropsWithUser extends Props {
-  user: User;
   currentUser: User;
 }
 
@@ -44,7 +44,7 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
     PresenceStore,
     useStateFromStore,
     profileBadge24,
-    getStatusColor,
+    useStatusFillColor,
   } = props;
 
   const [icons, setIcons] = React.useState<any[]>([]);
@@ -53,17 +53,18 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
     () => PresenceStore.getState().clientStatuses[user.id],
     [user.id],
   );
+
   React.useEffect(() => {
     if (!statuses) {
       PresenceStore.getStatus(user.id);
     }
-    const icons = Object.entries(statuses ?? {}).map(([platform, status]) => {
+    const icons = Object.entries(statuses ?? {}).map(([platform, status]) => () => {
       const tooltip = `${platform[0].toUpperCase() + platform.slice(1)} - ${
         status[0].toUpperCase() + status.slice(1)
       }`;
-      const color = getStatusColor(status);
+      const color = useStatusFillColor(status);
       const Icon = Icons[platform as Platforms] ?? Icons.desktop;
-      return <Icon color={`var(--${color}`} tooltip={tooltip} className={profileBadge24} />;
+      return <Icon color={`${color}`} tooltip={tooltip} className={profileBadge24} />;
     });
     setIcons(icons);
   }, [JSON.stringify(statuses)]);
@@ -95,25 +96,29 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
   }
 
   if (!icons.length) return null;
-  return <div className="platform-indicators">{icons}</div>;
+  return (
+    <div className="platform-indicators">
+      {icons.map((Icon) => (
+        <Icon />
+      ))}
+    </div>
+  );
 }
 
 const MemorizedTheRealPlatformIndicator = React.memo(
   TheRealPlatformIndicator,
 ) as React.FC<PropsWithUser>;
 
-function PlatformIndicator(props: Props) {
-  return ({ user }: { user: User }) => {
-    if (!user || user.bot) return null;
-    if (currentUser == null) currentUser = Replugged.common.users.getCurrentUser();
+function PlatformIndicator({ user, ...props }: Props) {
+  if (!user || user.bot) return null;
+  currentUser ??= Replugged.common.users.getCurrentUser();
 
-    if (!currentUser) {
-      logger.warn("Failed to get current user!");
-      return null;
-    }
+  if (!currentUser) {
+    logger.warn("Failed to get current user!");
+    return null;
+  }
 
-    return <MemorizedTheRealPlatformIndicator {...props} user={user} currentUser={currentUser} />;
-  };
+  return <MemorizedTheRealPlatformIndicator {...props} user={user} currentUser={currentUser} />;
 }
 
 export default PlatformIndicator;
