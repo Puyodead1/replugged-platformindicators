@@ -109,7 +109,7 @@ const MemorizedTheRealPlatformIndicator = React.memo(
   TheRealPlatformIndicator,
 ) as React.FC<PropsWithUser>;
 
-function PlatformIndicator({ user, ...props }: Props) {
+function PlatformIndicator({ user, ...props }: Props): React.ReactElement<any, any> | null {
   if (!user || user.bot) return null;
   currentUser ??= Replugged.common.users.getCurrentUser();
 
