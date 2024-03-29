@@ -7,7 +7,6 @@ import { modules } from "./Modules";
 import {
   ClientStatus,
   PlatformIndicatorsSettings,
-  Platforms,
   PresenceStore,
   SessionStore,
   useStateFromStore,
@@ -135,13 +134,21 @@ function patchMemberList(PlatformIndicatorProps: {
     modules.memberListFnName!,
     ([{ user }]: [{ user: User }], res: React.ReactElement, _) => {
       if (!cfg.get("renderInMemberList")) return res;
+      if (!res?.props?.children && typeof res?.props?.children != "function") return;
 
-      if (Array.isArray(res?.props?.decorators?.props?.children) && user) {
+      const children = res?.props?.children();
+
+      if (Array.isArray(children.props?.decorators?.props?.children) && user) {
         const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
         if (icon === null) return res; // to prevent adding an empty div
         const a = <ErrorBoundary>{icon}</ErrorBoundary>;
-        res?.props?.decorators?.props?.children.push(a);
+        children.props?.decorators?.props?.children.push(a);
       }
+
+      res.props.children = () => {
+        return children;
+      };
+
       return res;
     },
   );
