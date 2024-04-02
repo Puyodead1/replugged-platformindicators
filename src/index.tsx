@@ -99,7 +99,7 @@ function patchProfile(PlatformIndicatorProps: {
     const user = args.user as User;
 
     const theChildren = res?.props?.children;
-    if (!theChildren || !user) return res;
+    if (!theChildren || !user || !(theChildren instanceof Array)) return res;
     const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
     if (icon === null) return res; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
