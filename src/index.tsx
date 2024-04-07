@@ -98,19 +98,36 @@ function patchProfile(PlatformIndicatorProps: {
     if (!cfg.get("renderInProfile")) return res;
     const user = args.user as User;
 
-    const theChildren = res?.props?.children;
-    if (!theChildren || !user || !(theChildren instanceof Array)) return res;
+    const theChildren = res?.props?.children?.props?.children;
+
+    if (!theChildren) {
+      logger.error("[patchProfile] No children found", res);
+      return res;
+    }
+
+    if (!user) {
+      logger.error("[patchProfile] No user found", args);
+      return res;
+    }
+
+    if (!(theChildren instanceof Array)) {
+      logger.error("[patchProfile] Children is not an array", res);
+      return res;
+    }
+
     const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
     if (icon === null) return res; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
-    res.props.children = [a, ...theChildren];
+    res.props.children.props.children = [a, ...theChildren];
 
     if (theChildren.length > 0) {
-      if (!res.props.className.includes(modules.userBadgeClasses?.containerWithContent))
-        res.props.className += ` ${modules.userBadgeClasses?.containerWithContent}`;
+      if (
+        !res.props.children.props.className.includes(modules.userBadgeClasses?.containerWithContent)
+      )
+        res.props.children.props.className += ` ${modules.userBadgeClasses?.containerWithContent}`;
 
-      if (!res.props.className.includes("platform-indicator-badge-container"))
-        res.props.className += " platform-indicator-badge-container";
+      if (!res.props.children.props.className.includes("platform-indicator-badge-container"))
+        res.props.children.props.className += " platform-indicator-badge-container";
     }
 
     return res;
