@@ -162,11 +162,12 @@ function patchDMList(PlatformIndicatorProps: {
     toast.toast("Unable to patch DM List!", toast.Kind.FAILURE, { duration: 5000 });
     return;
   }
+  let patchedDMListItemType: () => void;
   inject.after(
     modules.dmListModule,
     modules.dmListFnName,
     (_args, res: { type: AnyFunction }, _) => {
-      if (!modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType) {
+      if (!patchedDMListItemType) {
         inject.after(
           res,
           "type",
@@ -202,10 +203,9 @@ function patchDMList(PlatformIndicatorProps: {
             return res;
           },
         );
-        modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType = res.type;
+        patchedDMListItemType = res.type;
       }
-      res.type =
-        modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType ?? res.type;
+      res.type = patchedDMListItemType ?? res.type;
     },
   );
 }
