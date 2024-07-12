@@ -16,7 +16,7 @@
   gap: 8px;
 }
 [class*="userProfileOuter"] .platform-indicators span {
-  border-radius: var(--radius);
+  border-radius: var(--radius-round);
   background: hsl(var(--black-500-hsl) / 0.7);
   cursor: pointer;
   padding: 8px;
