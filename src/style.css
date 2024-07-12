@@ -6,8 +6,23 @@
   vertical-align: bottom;
   /* top: 1px; */
 }
+
 .platform-indicator-badge-container {
   min-height: -webkit-fit-content;
   min-height: -moz-fit-content;
   min-height: fit-content;
+}
+[class*="userProfileOuter"] .platform-indicators {
+  gap: 8px;
+}
+[class*="userProfileOuter"] .platform-indicators span {
+  border-radius: var(--radius);
+  background: hsl(var(--black-500-hsl) / 0.7);
+  cursor: pointer;
+  padding: 8px;
+}
+
+[class*="userProfileOuter"] .platform-indicators span svg {
+  height: 16px !important;
+  width: 16px !important;
 }

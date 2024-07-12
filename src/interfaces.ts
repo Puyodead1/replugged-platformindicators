@@ -1,15 +1,15 @@
 /* eslint-disable */
 
 import { AnyFunction, RawModule } from "replugged/dist/types";
-
+import { Store } from "replugged/dist/renderer/modules/common/flux";
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   {
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
 
-export type Platforms = "desktop" | "mobile" | "web" | "console";
+export type Platforms = "desktop" | "mobile" | "web" | "embedded";
 
-export interface SessionStore extends RawModule {
+export interface SessionStore extends Store {
   getActiveSession: () => unknown;
   getRemoteActivities: () => unknown;
   getSession: () => unknown;
@@ -17,7 +17,7 @@ export interface SessionStore extends RawModule {
   getSessions: () => { [key: string]: unknown };
 }
 
-export interface PresenceStore extends RawModule {
+export interface PresenceStore extends Store {
   findActivity: (e: unknown, t: unknown) => unknown;
   getActivities: (e: unknown) => unknown;
   getActivityMetadata: (e: unknown) => unknown;
@@ -42,7 +42,7 @@ export type ClientStatus = RequireAtLeastOne<{
   desktop: string;
   mobile: string;
   web: string;
-  console: string;
+  embedded: string;
 }>;
 
 export interface PlatformIndicatorsSettings {
@@ -62,5 +62,3 @@ export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   renderInDirectMessageList: true,
   resetSettings: false,
 };
-
-export type useStateFromStore = (store: any[], cb: () => unknown, data: any[]) => PresenceStore;

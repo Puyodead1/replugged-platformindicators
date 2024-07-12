@@ -9,12 +9,11 @@ import {
   PlatformIndicatorsSettings,
   PresenceStore,
   SessionStore,
-  useStateFromStore,
 } from "./interfaces";
 import "./style.css";
 import { addNewSettings, cfg, forceRerenderElement, inject, logger, resetSettings } from "./utils";
 
-const { fluxDispatcher, toast } = common;
+const { fluxDispatcher, toast, fluxHooks } = common;
 const { ErrorBoundary } = components;
 
 const EVENT_NAME = "PRESENCE_UPDATES";
@@ -40,7 +39,7 @@ export async function start(): Promise<void> {
   const res = await modules.init(debug);
   if (!res) return;
   const PlatformIndicatorProps = {
-    useStateFromStore: modules.useStateFromStore!,
+    useStateFromStore: fluxHooks.useStateFromStores,
     SessionStore: modules.SessionStore!,
     PresenceStore: modules.PresenceStore!,
     useStatusFillColor: modules.useStatusFillColor!,
@@ -54,7 +53,7 @@ export async function start(): Promise<void> {
 }
 
 function patchMessageHeader(PlatformIndicatorProps: {
-  useStateFromStore: useStateFromStore;
+  useStateFromStore: typeof fluxHooks.useStateFromStores;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
@@ -81,61 +80,42 @@ function patchMessageHeader(PlatformIndicatorProps: {
 }
 
 function patchProfile(PlatformIndicatorProps: {
-  useStateFromStore: useStateFromStore;
+  useStateFromStore: typeof fluxHooks.useStateFromStores;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
   profileBadge24: string;
 }): void {
-  if (!modules.userBadgeModule) {
-    toast.toast("Unable to patch User Profile Badges!", toast.Kind.FAILURE, {
+  if (!modules.userProfileContextModule) {
+    toast.toast("Unable to patch User Profile!", toast.Kind.FAILURE, {
       duration: 5000,
     });
     return;
   }
 
-  inject.after(modules.userBadgeModule, "default", ([args], res: ReactElement, _) => {
-    if (!cfg.get("renderInProfile")) return res;
-    const user = args.user as User;
+  inject.before(modules.userProfileContextModule, "render", (args) => {
+    if (!cfg.get("renderInProfile")) return args;
 
-    const theChildren = res?.props?.children?.props?.children;
-
-    if (!theChildren) {
-      logger.error("[patchProfile] No children found", res);
-      return res;
+    const [props] = args;
+    if (!props?.children) return args;
+    if (!Array.isArray(props?.children)) props.children = [props?.children];
+    const profileHeader = props?.children?.find?.((c: ReactElement) =>
+      /{profileType:\w+,children:\w+}=/.exec(c?.type?.toString()),
+    );
+    if (!profileHeader || !props.user) return args;
+    if (!Array.isArray(profileHeader.props.children)) {
+      profileHeader.props.children = [profileHeader.props.children];
     }
-
-    if (!user) {
-      logger.error("[patchProfile] No user found", args);
-      return res;
-    }
-
-    if (!(theChildren instanceof Array)) {
-      logger.error("[patchProfile] Children is not an array", res);
-      return res;
-    }
-
-    const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
-    if (icon === null) return res; // to prevent adding an empty div
+    const icon = <PlatformIndicatorComponent user={props.user} {...PlatformIndicatorProps} />;
+    if (icon === null) return args; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
-    res.props.children.props.children = [a, ...theChildren];
-
-    if (theChildren.length > 0) {
-      if (
-        !res.props.children.props.className.includes(modules.userBadgeClasses?.containerWithContent)
-      )
-        res.props.children.props.className += ` ${modules.userBadgeClasses?.containerWithContent}`;
-
-      if (!res.props.children.props.className.includes("platform-indicator-badge-container"))
-        res.props.children.props.className += " platform-indicator-badge-container";
-    }
-
-    return res;
+    profileHeader.props.children.unshift(a);
+    return args;
   });
 }
 
 function patchMemberList(PlatformIndicatorProps: {
-  useStateFromStore: useStateFromStore;
+  useStateFromStore: typeof fluxHooks.useStateFromStores;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
@@ -172,7 +152,7 @@ function patchMemberList(PlatformIndicatorProps: {
 }
 
 function patchDMList(PlatformIndicatorProps: {
-  useStateFromStore: useStateFromStore;
+  useStateFromStore: typeof fluxHooks.useStateFromStores;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
