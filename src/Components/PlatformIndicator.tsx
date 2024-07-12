@@ -57,7 +57,7 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
     if (!statuses) {
       PresenceStore.getStatus(user.id);
     }
-    const icons = (Object.entries(statuses ?? {}) as [string, string][]).map(
+    const icons = (Object.entries(statuses ?? {}) as Array<[string, string]>).map(
       ([platform, status]) =>
         () => {
           const tooltip = `${
