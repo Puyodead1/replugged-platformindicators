@@ -110,6 +110,12 @@ function patchProfile(PlatformIndicatorProps: {
     if (icon === null) return args; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
     profileHeader.props.children.unshift(a);
+    profileHeader.props.children.unshift = (...args: unknown[]) => {
+      const item = profileHeader.props.children.splice(0, 1);
+      Array.prototype.unshift.apply(profileHeader.props.children, args);
+      Array.prototype.unshift.apply(profileHeader.props.children, item);
+      return profileHeader.props.children.length;
+    };
     return args;
   });
 }
