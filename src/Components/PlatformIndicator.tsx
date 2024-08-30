@@ -12,7 +12,6 @@ interface Props {
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
-  profileBadge24: string;
   user: User;
 }
 
@@ -36,15 +35,8 @@ const Icons = {
 };
 
 function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | null {
-  const {
-    user,
-    currentUser,
-    SessionStore,
-    PresenceStore,
-    useStateFromStore,
-    profileBadge24,
-    useStatusFillColor,
-  } = props;
+  const { user, currentUser, SessionStore, PresenceStore, useStateFromStore, useStatusFillColor } =
+    props;
 
   const [icons, setIcons] = React.useState<any[]>([]);
   const statuses = useStateFromStore(
@@ -67,7 +59,7 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
           } - ${status[0].toUpperCase() + status.slice(1)}`;
           const color = useStatusFillColor(status);
           const Icon = Icons[platform as Platforms] ?? Icons.desktop;
-          return <Icon color={`${color}`} tooltip={tooltip} className={profileBadge24} />;
+          return <Icon color={`${color}`} tooltip={tooltip} />;
         },
     );
     setIcons(icons);
