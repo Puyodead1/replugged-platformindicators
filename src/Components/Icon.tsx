@@ -2,7 +2,15 @@ import { components } from "replugged";
 const { Tooltip } = components;
 
 function Icon(path: string, viewBox = "0 0 24 24") {
-  return ({ color, tooltip, className }: { color: string; tooltip: string; className: string }) => (
+  return ({
+    color,
+    tooltip,
+    className,
+  }: {
+    color: string;
+    tooltip: string;
+    className?: string;
+  }) => (
     <Tooltip text={tooltip}>
       <svg
         className={className}

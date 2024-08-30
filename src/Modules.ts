@@ -10,7 +10,6 @@ export const modules: {
   messageHeaderModule: Record<string, AnyFunction> | null;
   messageHeaderFnName: string | null;
   useStatusFillColor: ((status: string, desature?: boolean) => string) | null;
-  profileBadgeMod: Record<string, string> | null;
   userProfileContextModule: Record<string, AnyFunction> | null;
   memberListModule: Record<string, AnyFunction> | null;
   memberListFnName: string | null;
@@ -23,7 +22,6 @@ export const modules: {
   messageHeaderModule: null,
   messageHeaderFnName: null,
   useStatusFillColor: null,
-  profileBadgeMod: null,
   userProfileContextModule: null,
   memberListModule: null,
   memberListFnName: null,
@@ -66,17 +64,6 @@ export const modules: {
     ) => string;
     debugLog(debug, "Found useStatusFillColor function");
 
-    debugLog(debug, "Waiting for profile badge classes module");
-    const profileBadgeMod = await webpack.waitForModule<Record<string, string> | undefined>(
-      webpack.filters.byProps("profileBadge24"),
-      {
-        timeout: 10000,
-      },
-    );
-    if (!profileBadgeMod) return moduleFindFailed("profileBadgeMod");
-    modules.profileBadgeMod = profileBadgeMod;
-    debugLog(debug, "Found profile badge classes module");
-
     debugLog(debug, "Waiting for Message Header module");
     modules.messageHeaderModule = await webpack.waitForModule<{
       [key: string]: AnyFunction;
@@ -106,7 +93,7 @@ export const modules: {
         },
         ...args: unknown[]
       ) => React.ReactElement;
-    }>(webpack.filters.bySource(".userPopoutOverlayBackground"), {
+    }>(webpack.filters.bySource(".biteSizeOverlayBackground)"), {
       timeout: 10000,
     });
     debugLog(debug, "Found UserBadge module");

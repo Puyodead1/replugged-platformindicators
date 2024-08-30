@@ -43,7 +43,6 @@ export async function start(): Promise<void> {
     SessionStore: modules.SessionStore!,
     PresenceStore: modules.PresenceStore!,
     useStatusFillColor: modules.useStatusFillColor!,
-    profileBadge24: modules.profileBadgeMod!.profileBadge24,
   };
   patchMessageHeader(PlatformIndicatorProps);
   patchProfile(PlatformIndicatorProps);
@@ -57,7 +56,6 @@ function patchMessageHeader(PlatformIndicatorProps: {
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
-  profileBadge24: string;
 }): void {
   if (!modules.messageHeaderModule || !modules.messageHeaderFnName) {
     toast.toast("Unable to patch Message Header!", toast.Kind.FAILURE, {
@@ -84,7 +82,6 @@ function patchProfile(PlatformIndicatorProps: {
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
-  profileBadge24: string;
 }): void {
   if (!modules.userProfileContextModule) {
     toast.toast("Unable to patch User Profile!", toast.Kind.FAILURE, {
@@ -125,7 +122,6 @@ function patchMemberList(PlatformIndicatorProps: {
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
-  profileBadge24: string;
 }): void {
   if (!modules.memberListModule) {
     toast.toast("Unable to patch Member List!", toast.Kind.FAILURE, { duration: 5000 });
@@ -162,7 +158,6 @@ function patchDMList(PlatformIndicatorProps: {
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
-  profileBadge24: string;
 }): void {
   if (!modules.dmListModule || !modules.dmListFnName) {
     toast.toast("Unable to patch DM List!", toast.Kind.FAILURE, { duration: 5000 });
