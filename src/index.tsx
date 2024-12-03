@@ -220,8 +220,6 @@ function rerenderRequired(): void {
 
 export function stop(): void {
   inject.uninjectAll();
-  delete modules.dmListModule![modules.dmListFnName!].prototype.patchedDMListItemType;
-  fluxDispatcher.unsubscribe(EVENT_NAME, presenceUpdate as any);
   logger.log("Unsubscribed from Presence updates");
 }
 

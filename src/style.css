@@ -12,11 +12,11 @@
   min-height: -moz-fit-content;
   min-height: fit-content;
 }
-[class*="userProfileOuter"] .platform-indicators {
+[class*="biteSize"] .platform-indicators {
   gap: 8px;
 }
 
-[class*="userProfileOuter"] .platform-indicators span {
+[class*="biteSize"] .platform-indicators span {
   border-radius: var(--radius-round);
   transition: background-color var(--custom-button-transition-duration) ease,
     color var(--custom-button-transition-duration) ease;
@@ -24,11 +24,11 @@
   cursor: pointer;
   padding: 8px;
 }
-[class*="userProfileOuter"] .platform-indicators span:hover {
+[class*="biteSize"] .platform-indicators span:hover {
   background: var(--redesign-button-overlay-alpha-pressed-background);
 }
 
-[class*="userProfileOuter"] .platform-indicators span svg {
+[class*="biteSize"] .platform-indicators span svg {
   height: 16px !important;
   width: 16px !important;
 }
