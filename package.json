@@ -1,6 +1,6 @@
 {
   "name": "replugged-platformindicators",
-  "version": "1.3.12",
+  "version": "1.3.13",
   "description": "Adds Platform Indicators for to for users to various places.",
   "engines": {
     "node": ">=18.0.0",

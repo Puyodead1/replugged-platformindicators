@@ -23,6 +23,10 @@
   background: var(--redesign-button-overlay-alpha-background);
   cursor: pointer;
   padding: 8px;
+  display: flex;
+}
+[class*="userProfileOuter"] .platform-indicators span:hover {
+  background: var(--redesign-button-overlay-alpha-pressed-background);
 }
 [class*="biteSize"] .platform-indicators span:hover {
   background: var(--redesign-button-overlay-alpha-pressed-background);
