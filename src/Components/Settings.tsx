@@ -1,13 +1,13 @@
 import { util } from "replugged";
 import { React } from "replugged/common";
 import {
-  SwitchItem,
   Button,
-  Text,
   Category,
-  TextInput,
   FormItem,
   SelectItem,
+  SwitchItem,
+  Text,
+  TextInput,
 } from "replugged/components";
 import { cfg, resetSettings } from "../utils";
 
