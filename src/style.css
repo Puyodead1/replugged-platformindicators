@@ -12,23 +12,25 @@
   min-height: -moz-fit-content;
   min-height: fit-content;
 }
-[class*="userProfileOuter"] .platform-indicators {
+[class^="outer"] > div > div > .platform-indicators {
   gap: 8px;
 }
 
-[class*="userProfileOuter"] .platform-indicators span {
+[class^="outer"] > div > div > .platform-indicators span {
   border-radius: var(--radius-round);
   transition: background-color var(--custom-button-transition-duration) ease,
     color var(--custom-button-transition-duration) ease;
   background: var(--redesign-button-overlay-alpha-background);
   cursor: pointer;
   padding: 8px;
+  display: flex;
 }
-[class*="userProfileOuter"] .platform-indicators span:hover {
+
+[class^="outer"] > div > div > .platform-indicators span:hover {
   background: var(--redesign-button-overlay-alpha-pressed-background);
 }
 
-[class*="userProfileOuter"] .platform-indicators span svg {
+[class^="outer"] > div > div > .platform-indicators span svg {
   height: 16px !important;
   width: 16px !important;
 }
