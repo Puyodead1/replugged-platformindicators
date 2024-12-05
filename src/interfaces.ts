@@ -52,6 +52,23 @@ export interface PlatformIndicatorsSettings {
   renderInMemberList: boolean;
   renderInDirectMessageList: boolean;
   resetSettings: boolean;
+  renderDesktop: boolean;
+  renderWeb: boolean;
+  renderMobile: boolean;
+  renderEmbedded: boolean;
+  desktopText: string;
+  webText: string;
+  mobileText: string;
+  embeddedText: string;
+  onlineText: string;
+  dndText: string;
+  idleText: string;
+  invisibleText: string;
+  streamingText: string;
+  desktopTooltip: string;
+  webTooltip: string;
+  mobileTooltip: string;
+  embeddedTooltip: string;
 }
 
 export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
@@ -61,4 +78,25 @@ export const PlatformIndicatorsSettings: PlatformIndicatorsSettings = {
   renderInMemberList: true,
   renderInDirectMessageList: true,
   resetSettings: false,
+
+  renderDesktop: true,
+  renderWeb: true,
+  renderMobile: true,
+  renderEmbedded: true,
+
+  desktopText: "",
+  webText: "",
+  mobileText: "",
+  embeddedText: "",
+
+  onlineText: "",
+  dndText: "",
+  idleText: "",
+  invisibleText: "",
+  streamingText: "",
+
+  desktopTooltip: "",
+  webTooltip: "",
+  mobileTooltip: "",
+  embeddedTooltip: "",
 };

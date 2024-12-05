@@ -93,7 +93,7 @@ export const modules: {
         },
         ...args: unknown[]
       ) => React.ReactElement;
-    }>(webpack.filters.bySource(".biteSizeOverlayBackground)"), {
+    }>(webpack.filters.bySource(".ThemeContextProvider,{theme:null!="), {
       timeout: 10000,
     });
     debugLog(debug, "Found UserBadge module");

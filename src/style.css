@@ -24,6 +24,7 @@
   cursor: pointer;
   padding: 8px;
   display: flex;
+  display: flex;
 }
 
 [class^="outer"] > div > div > .platform-indicators span:hover {

@@ -93,6 +93,7 @@ export function Settings(): JSX.Element {
   const [canReset, setCanReset] = React.useState(true);
   const [tooltipSection, setTooltipSection] = React.useState("overall");
   const [tooltipOpen, setTooltipOpen] = React.useState(false);
+
   return (
     <div>
       <Category title="Locations" note="Toogle render locations">
@@ -101,19 +102,91 @@ export function Settings(): JSX.Element {
           {...util.useSetting(cfg, "renderInDirectMessageList")}>
           Show in DM List
         </SwitchItem>
+        <Category title="Locations" note="Toogle render locations">
+          <SwitchItem
+            note="Toggle rendering in the DM List"
+            {...util.useSetting(cfg, "renderInDirectMessageList")}>
+            Show in DM List
+          </SwitchItem>
 
-        <SwitchItem
-          note="Toggle rendering in the User Profile as badge"
-          {...util.useSetting(cfg, "renderInProfile")}>
-          Show in User Profile
-        </SwitchItem>
+          <SwitchItem
+            note="Toggle rendering in the User Profile as badge"
+            {...util.useSetting(cfg, "renderInProfile")}>
+            Show in User Profile
+          </SwitchItem>
+          <SwitchItem
+            note="Toggle rendering in the User Profile as badge"
+            {...util.useSetting(cfg, "renderInProfile")}>
+            Show in User Profile
+          </SwitchItem>
 
-        <SwitchItem
-          note="Toggle rendering in the Member List"
-          {...util.useSetting(cfg, "renderInMemberList")}>
-          Show in Member List
-        </SwitchItem>
+          <SwitchItem
+            note="Toggle rendering in the Member List"
+            {...util.useSetting(cfg, "renderInMemberList")}>
+            Show in Member List
+          </SwitchItem>
+          <SwitchItem
+            note="Toggle rendering in the Member List"
+            {...util.useSetting(cfg, "renderInMemberList")}>
+            Show in Member List
+          </SwitchItem>
 
+          <SwitchItem note="Toggle rendering in Chat" {...util.useSetting(cfg, "renderInChat")}>
+            Show in Chat
+          </SwitchItem>
+        </Category>
+
+        <Category title="Icon" note="Toogle Platform Icons">
+          <SwitchItem note="Toggle desktop icon" {...util.useSetting(cfg, "renderDesktop")}>
+            Desktop
+          </SwitchItem>
+
+          <SwitchItem note="Toggle web icon" {...util.useSetting(cfg, "renderWeb")}>
+            Web
+          </SwitchItem>
+
+          <SwitchItem note="Toggle mobile icon" {...util.useSetting(cfg, "renderMobile")}>
+            Mobile
+          </SwitchItem>
+
+          <SwitchItem
+            note="Toggle embedded (console) icon"
+            {...util.useSetting(cfg, "renderEmbedded")}>
+            Embedded
+          </SwitchItem>
+        </Category>
+
+        <Category
+          key={`${tooltipSection}-${tooltipOpen}`}
+          open={tooltipOpen}
+          onChange={() => setTooltipOpen((prev) => !prev)}
+          title="Tooltip Text"
+          note={
+            tooltipSection === "overall"
+              ? "%status% - Original Status, %platform% - Original Platform"
+              : ""
+          }>
+          <SelectItem
+            value={tooltipSection}
+            options={[
+              {
+                label: "Overall",
+                value: "overall",
+              },
+              {
+                label: "Status",
+                value: "status",
+              },
+              {
+                label: "Platform",
+                value: "platform",
+              },
+            ]}
+            onChange={(v) => setTooltipSection(v)}>
+            Text Type
+          </SelectItem>
+          <TooltipCustomizer type={tooltipSection} />
+        </Category>
         <SwitchItem note="Toggle rendering in Chat" {...util.useSetting(cfg, "renderInChat")}>
           Show in Chat
         </SwitchItem>

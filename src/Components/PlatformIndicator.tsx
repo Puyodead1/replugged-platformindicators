@@ -1,7 +1,7 @@
 import { User } from "discord-types/general";
 import Replugged, { common } from "replugged";
-import { Platforms, PresenceStore, SessionStore } from "../interfaces";
-import { logger } from "../utils";
+import { PlatformIndicatorsSettings, Platforms, PresenceStore, SessionStore } from "../interfaces";
+import { cfg, logger } from "../utils";
 import iconMaker from "./Icon";
 const { React, fluxHooks } = common;
 
@@ -49,19 +49,35 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
     if (!statuses) {
       PresenceStore.getStatus(user.id);
     }
-    const icons = (Object.entries(statuses ?? {}) as Array<[string, string]>).map(
-      ([platform, status]) =>
-        () => {
-          const tooltip = `${
-            platform[0].toUpperCase() +
+    const icons = (Object.entries(statuses ?? {}) as Array<[string, string]>)
+      .filter(([platform]) =>
+        cfg.get(
+          `render${
+            platform[0].toUpperCase() + platform.slice(1)
+          }` as keyof PlatformIndicatorsSettings,
+        ),
+      )
+      .map(([platform, status]) => () => {
+        const tooltipTemplate = cfg.get(
+          `${platform}Tooltip` as keyof PlatformIndicatorsSettings,
+        ) as string;
+        const platformText =
+          (cfg.get(`${platform}Text` as keyof PlatformIndicatorsSettings) as string) ||
+          platform[0].toUpperCase() +
             platform.slice(1) +
-            (platform.toLowerCase() === "embedded" ? " (Console)" : "")
-          } - ${status[0].toUpperCase() + status.slice(1)}`;
-          const color = useStatusFillColor(status);
-          const Icon = Icons[platform as Platforms] ?? Icons.desktop;
-          return <Icon color={`${color}`} tooltip={tooltip} />;
-        },
-    );
+            (platform.toLowerCase() === "embedded" ? " (Console)" : "");
+        const statusText =
+          (cfg.get(`${status}Text` as keyof PlatformIndicatorsSettings) as string) ||
+          status[0].toUpperCase() + status.slice(1);
+
+        const tooltip = tooltipTemplate
+          ? tooltipTemplate.replace("%platform%", platformText).replace("%status%", statusText)
+          : `${platformText} - ${statusText}`;
+
+        const color = useStatusFillColor(status);
+        const Icon = Icons[platform as Platforms] ?? Icons.desktop;
+        return <Icon color={`${color}`} tooltip={tooltip} />;
+      });
     setIcons(icons);
   }, [JSON.stringify(statuses)]);
 
