@@ -1,21 +1,16 @@
 import { User } from "discord-types/general";
 import { ReactElement } from "react";
-import { common, components, util } from "replugged";
+import { common, components, util, webpack } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
 import PlatformIndicatorComponent from "./Components/PlatformIndicator";
 import { modules } from "./Modules";
-import {
-  ClientStatus,
-  PlatformIndicatorsSettings,
-  PresenceStore,
-  SessionStore,
-} from "./interfaces";
+import { PlatformIndicatorsSettings, PresenceStore, SessionStore } from "./interfaces";
 import "./style.css";
 import { addNewSettings, cfg, forceRerenderElement, inject, logger, resetSettings } from "./utils";
 
-const { fluxDispatcher, toast, fluxHooks } = common;
+const { toast, fluxHooks } = common;
 const { ErrorBoundary } = components;
-
+/* 
 const EVENT_NAME = "PRESENCE_UPDATES";
 
 let presenceUpdate: (e: {
@@ -27,7 +22,7 @@ let presenceUpdate: (e: {
     user: { id: string };
   }>;
 }) => void;
-
+ */
 export async function start(): Promise<void> {
   if (cfg.get("resetSettings", PlatformIndicatorsSettings.resetSettings)) resetSettings();
 
@@ -92,14 +87,21 @@ function patchProfile(PlatformIndicatorProps: {
 
   inject.before(modules.userProfileContextModule, "render", (args) => {
     if (!cfg.get("renderInProfile")) return args;
-
     const [props] = args;
     if (!props?.children) return args;
     if (!Array.isArray(props?.children)) props.children = [props?.children];
-    const profileHeader = props?.children?.find?.((c: ReactElement) =>
+    const profileHeaderIndex = props?.children?.findIndex?.((c: ReactElement) =>
       /{profileType:\w+,children:\w+}=/.exec(c?.type?.toString()),
     );
-    if (!profileHeader || !props.user) return args;
+    if (profileHeaderIndex === -1) {
+      const ProfileHeader = webpack.getBySource<
+        React.ComponentType<{ profileType: string; children?: React.ReactElement[] }>
+      >(/{profileType:\w+,children:\w+}=/)!;
+      props?.children.unshift(<ProfileHeader profileType={props.profileType} />);
+    }
+    if (!props.user) return args;
+    const profileHeader = props?.children[profileHeaderIndex != -1 ? profileHeaderIndex : 0];
+
     if (!Array.isArray(profileHeader.props.children)) {
       profileHeader.props.children = [profileHeader.props.children];
     }
