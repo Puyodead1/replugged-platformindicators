@@ -1,21 +1,21 @@
 import { User } from "discord-types/general";
-import Replugged, { common } from "replugged";
+import { React, fluxHooks, users } from "replugged/common";
 import { PlatformIndicatorsSettings, Platforms, PresenceStore, SessionStore } from "../interfaces";
 import { cfg, logger } from "../utils";
 import iconMaker from "./Icon";
-const { React, fluxHooks } = common;
+import { modules } from "../Modules";
 
 let currentUser: User | null = null;
 
-interface Props {
+interface PartialProps {
+  user: User;
+}
+
+interface Props extends PartialProps {
   useStateFromStore: typeof fluxHooks.useStateFromStores;
   SessionStore: SessionStore;
   PresenceStore: PresenceStore;
   useStatusFillColor: (status: string, desaturate?: boolean) => string;
-  user: User;
-}
-
-interface PropsWithUser extends Props {
   currentUser: User;
 }
 
@@ -34,7 +34,7 @@ const Icons = {
   ),
 };
 
-function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | null {
+const PlatformIndicator = React.memo((props: Props): React.ReactElement | null => {
   const { user, currentUser, SessionStore, PresenceStore, useStateFromStore, useStatusFillColor } =
     props;
 
@@ -115,22 +115,25 @@ function TheRealPlatformIndicator(props: PropsWithUser): React.ReactElement | nu
       ))}
     </div>
   );
-}
+});
 
-const MemorizedTheRealPlatformIndicator = React.memo(
-  TheRealPlatformIndicator,
-) as React.FC<PropsWithUser>;
-
-function PlatformIndicator({ user, ...props }: Props): React.ReactElement<any, any> | null {
+export default ({ user }: PartialProps): React.ReactElement<any, any> | null => {
   if (!user || user.bot) return null;
-  currentUser ??= Replugged.common.users.getCurrentUser();
+  currentUser ??= users.getCurrentUser();
 
   if (!currentUser) {
     logger.warn("Failed to get current user!");
     return null;
   }
 
-  return <MemorizedTheRealPlatformIndicator {...props} user={user} currentUser={currentUser} />;
-}
+  const PlatformIndicatorProps = {
+    useStateFromStore: fluxHooks.useStateFromStores,
+    SessionStore: modules.SessionStore!,
+    PresenceStore: modules.PresenceStore!,
+    useStatusFillColor: modules.useStatusFillColor!,
+  };
 
-export default PlatformIndicator;
+  if (Object.values(PlatformIndicatorProps).some((m) => !m)) return null;
+
+  return <PlatformIndicator {...PlatformIndicatorProps} user={user} currentUser={currentUser} />;
+};
