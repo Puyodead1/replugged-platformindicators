@@ -1,57 +1,31 @@
 import { User } from "discord-types/general";
 import { ReactElement } from "react";
-import { common, components, util, webpack } from "replugged";
-import { AnyFunction } from "replugged/dist/types";
+import { plugins, webpack } from "replugged";
+import { toast } from "replugged/common";
+import { ErrorBoundary } from "replugged/components";
 import PlatformIndicatorComponent from "./Components/PlatformIndicator";
 import { modules } from "./Modules";
-import { PlatformIndicatorsSettings, PresenceStore, SessionStore } from "./interfaces";
+import { PlatformIndicatorsSettings } from "./interfaces";
 import "./style.css";
-import { addNewSettings, cfg, forceRerenderElement, inject, logger, resetSettings } from "./utils";
+import { addNewSettings, cfg, inject, resetSettings } from "./utils";
 
-const { toast, fluxHooks } = common;
-const { ErrorBoundary } = components;
-/* 
-const EVENT_NAME = "PRESENCE_UPDATES";
+import ManifestJSON from "../manifest.json";
 
-let presenceUpdate: (e: {
-  type: typeof EVENT_NAME;
-  updates: Array<{
-    clientStatus: ClientStatus;
-    guildId: string;
-    status: string;
-    user: { id: string };
-  }>;
-}) => void;
- */
 export async function start(): Promise<void> {
   if (cfg.get("resetSettings", PlatformIndicatorsSettings.resetSettings)) resetSettings();
 
-  // add any new settings
   addNewSettings();
 
   const debug = cfg.get("debug", PlatformIndicatorsSettings.debug);
 
-  const res = await modules.init(debug);
-  if (!res) return;
-  const PlatformIndicatorProps = {
-    useStateFromStore: fluxHooks.useStateFromStores,
-    SessionStore: modules.SessionStore!,
-    PresenceStore: modules.PresenceStore!,
-    useStatusFillColor: modules.useStatusFillColor!,
-  };
-  patchMessageHeader(PlatformIndicatorProps);
-  patchProfile(PlatformIndicatorProps);
-  patchMemberList(PlatformIndicatorProps);
-  patchDMList(PlatformIndicatorProps);
-  rerenderRequired();
+  const initiated = await modules.init(debug);
+  if (!initiated) return;
+
+  patchMessageHeader();
+  patchProfile();
 }
 
-function patchMessageHeader(PlatformIndicatorProps: {
-  useStateFromStore: typeof fluxHooks.useStateFromStores;
-  SessionStore: SessionStore;
-  PresenceStore: PresenceStore;
-  useStatusFillColor: (status: string, desaturate?: boolean) => string;
-}): void {
+function patchMessageHeader(): void {
   if (!modules.messageHeaderModule || !modules.messageHeaderFnName) {
     toast.toast("Unable to patch Message Header!", toast.Kind.FAILURE, {
       duration: 5000,
@@ -63,7 +37,7 @@ function patchMessageHeader(PlatformIndicatorProps: {
     if (!cfg.get("renderInChat")) return args;
     const user = args[0].message.author as User;
     if (args[0].decorations?.["1"] && args[0].message && user) {
-      const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
+      const icon = <PlatformIndicatorComponent user={user} />;
       if (icon === null) return args; // to prevent adding an empty div
       const a = <ErrorBoundary>{icon}</ErrorBoundary>;
       args[0].decorations[1].push(a);
@@ -72,12 +46,7 @@ function patchMessageHeader(PlatformIndicatorProps: {
   });
 }
 
-function patchProfile(PlatformIndicatorProps: {
-  useStateFromStore: typeof fluxHooks.useStateFromStores;
-  SessionStore: SessionStore;
-  PresenceStore: PresenceStore;
-  useStatusFillColor: (status: string, desaturate?: boolean) => string;
-}): void {
+function patchProfile(): void {
   if (!modules.userProfileContextModule) {
     toast.toast("Unable to patch User Profile!", toast.Kind.FAILURE, {
       duration: 5000,
@@ -105,7 +74,7 @@ function patchProfile(PlatformIndicatorProps: {
     if (!Array.isArray(profileHeader.props.children)) {
       profileHeader.props.children = [profileHeader.props.children];
     }
-    const icon = <PlatformIndicatorComponent user={props.user} {...PlatformIndicatorProps} />;
+    const icon = <PlatformIndicatorComponent user={props.user} />;
     if (icon === null) return args; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
     profileHeader.props.children.unshift(a);
@@ -119,110 +88,15 @@ function patchProfile(PlatformIndicatorProps: {
   });
 }
 
-function patchMemberList(PlatformIndicatorProps: {
-  useStateFromStore: typeof fluxHooks.useStateFromStores;
-  SessionStore: SessionStore;
-  PresenceStore: PresenceStore;
-  useStatusFillColor: (status: string, desaturate?: boolean) => string;
-}): void {
-  if (!modules.memberListModule) {
-    toast.toast("Unable to patch Member List!", toast.Kind.FAILURE, { duration: 5000 });
-    return;
-  }
-
-  inject.after(
-    modules.memberListModule!,
-    modules.memberListFnName!,
-    ([{ user }]: [{ user: User }], res: React.ReactElement, _) => {
-      if (!cfg.get("renderInMemberList")) return res;
-      if (!res?.props?.children && typeof res?.props?.children != "function") return;
-
-      const children = res?.props?.children();
-
-      if (Array.isArray(children.props?.decorators?.props?.children) && user) {
-        const icon = <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />;
-        if (icon === null) return res; // to prevent adding an empty div
-        const a = <ErrorBoundary>{icon}</ErrorBoundary>;
-        children.props?.decorators?.props?.children.push(a);
-      }
-
-      res.props.children = () => {
-        return children;
-      };
-
-      return res;
-    },
-  );
-}
-
-function patchDMList(PlatformIndicatorProps: {
-  useStateFromStore: typeof fluxHooks.useStateFromStores;
-  SessionStore: SessionStore;
-  PresenceStore: PresenceStore;
-  useStatusFillColor: (status: string, desaturate?: boolean) => string;
-}): void {
-  if (!modules.dmListModule || !modules.dmListFnName) {
-    toast.toast("Unable to patch DM List!", toast.Kind.FAILURE, { duration: 5000 });
-    return;
-  }
-  let patchedDMListItemType: () => void;
-  inject.after(
-    modules.dmListModule,
-    modules.dmListFnName,
-    (_args, res: { type: AnyFunction }, _) => {
-      if (!patchedDMListItemType) {
-        inject.after(
-          res,
-          "type",
-          ([{ user }]: [{ user: User }], res: { props: { children: AnyFunction } }) => {
-            if (!cfg.get("renderInDirectMessageList") || !user) return res;
-            inject.after(res.props, "children", (_args, res: ReactElement, _) => {
-              const { findInReactTree } = util as unknown as {
-                findInReactTree: (
-                  tree: ReactElement,
-                  filter: AnyFunction,
-                  maxRecursions?: number,
-                ) => ReactElement;
-              };
-              const container = findInReactTree(
-                res,
-                (c) => c?.props?.avatar && c?.props?.name && c?.props?.subText,
-              );
-              if (!container) return res;
-              const a = (
-                <ErrorBoundary>
-                  <PlatformIndicatorComponent user={user} {...PlatformIndicatorProps} />
-                </ErrorBoundary>
-              );
-              if (Array.isArray(container.props.decorators)) {
-                container?.props?.decorators.push(a);
-              } else if (container.props.decorators === null) {
-                container.props.decorators = [a];
-              } else {
-                container.props.decorators = [...Array.from(container.props.decorators), a];
-              }
-              return res;
-            });
-            return res;
-          },
-        );
-        patchedDMListItemType = res.type;
-      }
-      res.type = patchedDMListItemType ?? res.type;
-    },
-  );
-}
-
-function rerenderRequired(): void {
-  void util
-    .waitFor("[class^=layout-]")
-    .then(() => forceRerenderElement("[class^=privateChannels-]"));
-  void util.waitFor("li [class*=message-] h3").then(() => forceRerenderElement("[class^=chat-]"));
-}
-
 export function stop(): void {
   inject.uninjectAll();
-  logger.log("Unsubscribed from Presence updates");
 }
 
 export { Settings } from "./Components/Settings";
+
+export const _renderPlatformIndicator = (user: User): ReactElement | null =>
+  !plugins.getDisabled().includes(ManifestJSON.id) && user ? (
+    <ErrorBoundary>
+      <PlatformIndicatorComponent user={user} />
+    </ErrorBoundary>
+  ) : null;

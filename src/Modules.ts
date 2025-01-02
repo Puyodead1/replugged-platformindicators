@@ -2,7 +2,7 @@ import { webpack } from "replugged";
 import { AnyFunction } from "replugged/dist/types";
 import { PresenceStore, SessionStore } from "./interfaces";
 import { User } from "discord-types/general";
-import { debugLog, functionNameFindFailed, logger, moduleFindFailed } from "./utils";
+import { debugLog, functionNameFindFailed, moduleFindFailed } from "./utils";
 
 export const modules: {
   SessionStore: SessionStore | null;
@@ -82,7 +82,7 @@ export const modules: {
     modules.messageHeaderFnName = messageHeaderFnName;
     debugLog(debug, "Found Message Header function name");
 
-    debugLog(debug, "Waiting for user profile context module");
+    debugLog(debug, "Waiting for User Profile Context module");
     modules.userProfileContextModule = await webpack.waitForModule<{
       [key: string]: (
         props: {
@@ -96,43 +96,7 @@ export const modules: {
     }>(webpack.filters.bySource(".ThemeContextProvider,{theme:null!="), {
       timeout: 10000,
     });
-    debugLog(debug, "Found UserBadge module");
-
-    try {
-      debugLog(debug, "Waiting for Member List module");
-      modules.memberListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
-        webpack.filters.bySource(".MEMBER_LIST_ITEM_AVATAR_DECORATION_PADDING)"),
-        {
-          timeout: 10000,
-        },
-      );
-      debugLog(debug, "Found Member List module");
-
-      const memberListFnName = webpack.getFunctionKeyBySource(modules.memberListModule, /isTyping/);
-      if (!memberListFnName) return functionNameFindFailed("memberListModule");
-      modules.memberListFnName = memberListFnName;
-      debugLog(debug, "Found Member List function name");
-    } catch (e) {
-      logger.error(e);
-    }
-
-    debugLog(debug, "Waiting for DM List module");
-    modules.dmListModule = await webpack.waitForModule<Record<string, AnyFunction>>(
-      webpack.filters.bySource('location:"private_channel"'),
-      {
-        timeout: 10000,
-      },
-    );
-    if (!modules.dmListModule) return moduleFindFailed("dmListModule");
-    debugLog(debug, "Found DM List module");
-
-    const dmListFnName = webpack.getFunctionKeyBySource(
-      modules.dmListModule,
-      /getAnyStreamForUser/,
-    );
-    if (!dmListFnName) return functionNameFindFailed("dmListModule");
-    modules.dmListFnName = dmListFnName;
-    debugLog(debug, "Found DM List function name");
+    debugLog(debug, "Found User Profile Context module");
 
     return true;
   },

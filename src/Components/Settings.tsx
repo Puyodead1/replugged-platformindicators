@@ -11,7 +11,7 @@ import {
 } from "replugged/components";
 import { cfg, resetSettings } from "../utils";
 
-const ManifestJSON = require("../../manifest.json");
+import ManifestJSON from "../../manifest.json";
 
 function TooltipCustomizer({ type }: { type: string }): JSX.Element {
   switch (type) {
