@@ -46,22 +46,18 @@ export const modules: {
     debugLog(debug, "Found PresenceStore module");
 
     debugLog(debug, "Waiting for useStatusFillColor function");
-    const useStatusFillColorMod = await webpack.waitForProps<Record<string, AnyFunction>>(
-      ["useStatusFillColor"],
+    const useStatusFillColorMod = await webpack.waitForModule<Record<string, AnyFunction>>(
+      webpack.filters.bySource("useStatusFillColor"),
       {
         timeout: 10000,
       },
     );
     if (!useStatusFillColorMod) return moduleFindFailed("useStatusFillColorMod");
-    // const useStatusFillColor = webpack.getFunctionBySource<(status: string) => string>(
-    //   useStatusFillColorMod,
-    //   STATUS_COLOR_REGEX,
-    // );
-    // if (!useStatusFillColor) return moduleFindFailed("useStatusFillColor");
-    modules.useStatusFillColor = useStatusFillColorMod.useStatusFillColor as (
-      status: string,
-      desature?: boolean,
-    ) => string;
+
+    modules.useStatusFillColor = webpack.getFunctionBySource<
+      (status: string, desature?: boolean) => string
+    >(useStatusFillColorMod, "useStatusFillColor")!;
+
     debugLog(debug, "Found useStatusFillColor function");
 
     debugLog(debug, "Waiting for Message Header module");
@@ -93,7 +89,7 @@ export const modules: {
         },
         ...args: unknown[]
       ) => React.ReactElement;
-    }>(webpack.filters.bySource(".ThemeContextProvider,{theme:null!="), {
+    }>(webpack.filters.bySource(/{profileThemeStyle:\w+,profileThemeClassName:\w+}/), {
       timeout: 10000,
     });
     debugLog(debug, "Found User Profile Context module");
