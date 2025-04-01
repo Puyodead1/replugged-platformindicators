@@ -63,9 +63,10 @@ function patchProfile(): void {
       /{profileType:\w+,children:\w+}=/.exec(c?.type?.toString()),
     );
     if (profileHeaderIndex === -1) {
-      const ProfileHeader = webpack.getBySource<
-        React.ComponentType<{ profileType: string; children?: React.ReactElement[] }>
-      >(/{profileType:\w+,children:\w+}=/)!;
+      const ProfileHeader =
+        webpack.getBySource<
+          React.ComponentType<{ profileType: string; children?: React.ReactElement[] }>
+        >(/wrapper,{\[\w+\.biteSize/)!;
       props?.children.unshift(<ProfileHeader profileType={props.profileType} />);
     }
     if (!props.user) return args;
