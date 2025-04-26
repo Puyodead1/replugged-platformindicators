@@ -1,6 +1,6 @@
 import { User } from "discord-types/general";
 import { ReactElement } from "react";
-import { plugins, webpack } from "replugged";
+import { plugins } from "replugged";
 import { toast } from "replugged/common";
 import { ErrorBoundary } from "replugged/components";
 import PlatformIndicatorComponent from "./Components/PlatformIndicator";
@@ -59,22 +59,30 @@ function patchProfile(): void {
     const [props] = args;
     if (!props?.children) return args;
     if (!Array.isArray(props?.children)) props.children = [props?.children];
-    const profileHeaderIndex = props?.children?.findIndex?.((c: ReactElement) =>
-      /{profileType:\w+,children:\w+}=/.exec(c?.type?.toString()),
-    );
-    if (profileHeaderIndex === -1) {
-      const ProfileHeader =
-        webpack.getBySource<
-          React.ComponentType<{ profileType: string; children?: React.ReactElement[] }>
-        >(/wrapper,{\[\w+\.biteSize/)!;
-      props?.children.unshift(<ProfileHeader profileType={props.profileType} />);
-    }
-    if (!props.user) return args;
-    const profileHeader = props?.children[profileHeaderIndex != -1 ? profileHeaderIndex : 0];
 
-    if (!Array.isArray(profileHeader.props.children)) {
-      profileHeader.props.children = [profileHeader.props.children];
+    const container =
+      props?.children.find((v: ReactElement) =>
+        v?.props?.children?.some?.((c: ReactElement) =>
+          c?.type?.toString?.()?.includes(".wrapper,children"),
+        ),
+      )?.props?.children || props?.children;
+
+    const profileHeaderIndex = container?.findIndex?.((c: ReactElement) =>
+      c?.type?.toString?.()?.includes(".wrapper,children"),
+    );
+
+    if (profileHeaderIndex === -1) {
+      container.unshift(<div className="headerButtonWrapper" children={[]} />);
     }
+
+    if (!props.user) return args;
+    const profileHeader = container[profileHeaderIndex != -1 ? profileHeaderIndex : 0];
+
+    if (!Array.isArray(profileHeader.props.children))
+      profileHeader.props.children = profileHeader.props.children
+        ? [profileHeader.props.children]
+        : [];
+
     const icon = <PlatformIndicatorComponent user={props.user} />;
     if (icon === null) return args; // to prevent adding an empty div
     const a = <ErrorBoundary>{icon}</ErrorBoundary>;
