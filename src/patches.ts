@@ -17,9 +17,9 @@ export default [
     find: ".MEMBER_LIST_ITEM_AVATAR_DECORATION_PADDING)",
     replacements: [
       {
-        match: /(\.isVerifiedBot\(\).{40,60}?\w+\(\))]/,
+        match: /decorators:(\(0,\w+\.jsx\).+?}\))/,
         replace: (_, prefix) =>
-          `${prefix},replugged?.plugins?.getExports('${ManifestJSON.id}')?._renderPlatformIndicator(arguments[0].user)]`,
+          `decorators:[${prefix},replugged?.plugins?.getExports('${ManifestJSON.id}')?._renderPlatformIndicator(arguments[0].user)]`,
       },
     ],
   },
