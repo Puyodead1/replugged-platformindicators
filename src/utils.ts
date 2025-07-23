@@ -2,7 +2,7 @@ import { Injector, Logger, settings, util } from "replugged";
 import { PlatformIndicatorsSettings } from "./interfaces";
 
 export const inject = new Injector();
-export const cfg = await settings.init<
+export const cfg = settings.init<
   PlatformIndicatorsSettings,
   keyof typeof PlatformIndicatorsSettings
 >("me.puyodead1.PlatformIndicators");
