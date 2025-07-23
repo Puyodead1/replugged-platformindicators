@@ -8,7 +8,7 @@ export default [
     replacements: [
       {
         match: /decorators:(\w+\.isSystemDM\(\).{50,100}?null)/,
-        replace: (_, children) =>
+        replace: (_, children: string) =>
           `decorators:[${children},replugged?.plugins?.getExports('${ManifestJSON.id}')?._renderPlatformIndicator(arguments[0].user)]`,
       },
     ],
@@ -18,7 +18,7 @@ export default [
     replacements: [
       {
         match: /decorators:(\(0,\w+\.jsx\).+?}\))/,
-        replace: (_, prefix) =>
+        replace: (_, prefix: string) =>
           `decorators:[${prefix},replugged?.plugins?.getExports('${ManifestJSON.id}')?._renderPlatformIndicator(arguments[0].user)]`,
       },
     ],

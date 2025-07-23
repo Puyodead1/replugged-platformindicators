@@ -47,16 +47,17 @@ export const modules: {
 
     debugLog(debug, "Waiting for useStatusFillColor function");
     const useStatusFillColorMod = await webpack.waitForModule<Record<string, AnyFunction>>(
-      webpack.filters.bySource("useStatusFillColor"),
+      webpack.filters.bySource(".Masks.STATUS_ONLINE_MOBILE"),
       {
         timeout: 10000,
       },
     );
+
     if (!useStatusFillColorMod) return moduleFindFailed("useStatusFillColorMod");
 
     modules.useStatusFillColor = webpack.getFunctionBySource<
       (status: string, desature?: boolean) => string
-    >(useStatusFillColorMod, "useStatusFillColor")!;
+    >(useStatusFillColorMod, ")).hex")!;
 
     debugLog(debug, "Found useStatusFillColor function");
 
